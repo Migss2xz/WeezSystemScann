@@ -158,12 +158,10 @@ switch ($selection) {
             } else {
                 $logOutput = ""
                 foreach ($log in $protectionLogs) {
-    $eventTime = $log.TimeCreated
-    $eventMessage = $log.Message
-    $eventID = $log.Id
-    $logOutput += "$($eventTime) - Event ID $($eventID): $($eventMessage)`n"
-}
-
+                    $eventTime = $log.TimeCreated
+                    $eventMessage = $log.Message
+                    $eventID = $log.Id
+                    $logOutput += "$($eventTime) - Event ID $($eventID): $($eventMessage)`n"
                 }
                 Write-Host $logOutput
             }
