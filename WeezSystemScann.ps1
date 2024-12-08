@@ -111,40 +111,29 @@ $Bam = Foreach ($Sid in $Users){$u++
 			    $sig = if((((split-path -path $item) | ConvertFrom-String -Delimiter "\\").P3)-match '\d{1}')
 			    {Get-Signature -FilePath $path} else {$sig = ""}				
                 [PSCustomObject]@{
-                            'Examiner Time' = $TimeLocal
-						    'Last Execution Time (UTC)'= $TimeUTC
-						    'Last Execution User Time' = $TimeUser
-                             Signature =          $Sig
-						     User =         $User
-						     SID =          $Sid
-                             Regpath =        $rp
                              }}}}}
 
 
 $Bam | Out-GridView -PassThru -Title "BAM key entries $($Bam.count)  - User TimeZone: ($UserTime) -> ActiveBias: ( $Bias) - DayLightTime: ($Day)"
 
 $sw.stop()
-
-# Display "Scan Finished" message before showing elapsed time
-Write-Host "- Scan Finished." -ForegroundColor Green
-
-# Elapsed time
 $t = $sw.Elapsed.TotalMinutes
 Write-Host ""
-Write-Host "Elapsed Time $t Minutes" -ForegroundColor Red
+Write-Host "- Scan Finished." -ForegroundColor Green
+Write-Host "Elapsed Time $t Minutes" -ForegroundColor Green
 
 # Display the interaction menu with a box around the options
 Write-Host ""
 Write-Host "Select an option:"
-Write-Host "┌────────────────────────────────────────────────────┐"
-Write-Host "│ " -NoNewLine; Write-Host -ForegroundColor Green "A. " -NoNewLine; Write-Host -ForegroundColor White "Display system information in a new window"
+Write-Host "┌───────────────────────────────────────────────────────┐"
+Write-Host "│ " -NoNewLine; Write-Host -ForegroundColor Green "A. " -NoNewLine; Write-Host -ForegroundColor White "Display system information"
 Write-Host "│ " -NoNewLine; Write-Host -ForegroundColor Green "B. " -NoNewLine; Write-Host -ForegroundColor White "Display recent Anti-Virus logs/flags"
 Write-Host "│ " -NoNewLine; Write-Host -ForegroundColor Green "C. " -NoNewLine; Write-Host -ForegroundColor White "List Installed Software"
 Write-Host "│ " -NoNewLine; Write-Host -ForegroundColor Green "D. " -NoNewLine; Write-Host -ForegroundColor White "Display Recent User Logins"
 Write-Host "│ " -NoNewLine; Write-Host -ForegroundColor Green "E. " -NoNewLine; Write-Host -ForegroundColor White "View Security and Anti-Malware Scan History"
 Write-Host "│ " -NoNewLine; Write-Host -ForegroundColor Green "F. " -NoNewLine; Write-Host -ForegroundColor White "Check for Local User Accounts"
 Write-Host "│ " -NoNewLine; Write-Host -ForegroundColor Red "X. " -NoNewLine; Write-Host -ForegroundColor White "Exit"
-Write-Host "└────────────────────────────────────────────────────┘"
+Write-Host "└───────────────────────────────────────────────────────┘"
 
 $selection = Read-Host "Enter your choice (A/B/C/D/E/F/X)"
 
