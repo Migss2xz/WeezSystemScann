@@ -156,37 +156,40 @@ switch ($selection) {
         # Get recent logs related to Real-Time Protection and Threat Detection
         $protectionLogs = Get-WinEvent -LogName $logName | Where-Object { $eventIDs -contains $_.Id } | Sort-Object TimeCreated | Select-Object -First 20
         
+        # Prepare the log output variable
+        $logOutput = ""
+
         # Format and display each log entry with colored output for ON/OFF status
         foreach ($log in $protectionLogs) {
             $eventTime = $log.TimeCreated
             $eventMessage = $log.Message
             $eventID = $log.Id
             
-            # Color the output based on the Event ID
+            # Build log output with colored formatting for the console window
             if ($eventID -eq 5001) {
                 # Real-Time Protection turned ON (Green)
-                Write-Host "$eventTime - Real-Time Protection ON: $eventMessage" -ForegroundColor Green
+                $logOutput += "$eventTime - Real-Time Protection ON: $eventMessage`n"
             } elseif ($eventID -eq 5002) {
                 # Real-Time Protection turned OFF (Red)
-                Write-Host "$eventTime - Real-Time Protection OFF: $eventMessage" -ForegroundColor Red
+                $logOutput += "$eventTime - Real-Time Protection OFF: $eventMessage`n"
             } elseif ($eventID -eq 1116) {
-                # Threat Detected (Orange for warning)
-                Write-Host "$eventTime - Threat Detected: $eventMessage" -ForegroundColor Yellow
+                # Threat Detected (Yellow for warning)
+                $logOutput += "$eventTime - Threat Detected: $eventMessage`n"
             } elseif ($eventID -eq 1117) {
                 # Threat Removed (Green for successful removal)
-                Write-Host "$eventTime - Threat Removed: $eventMessage" -ForegroundColor Green
+                $logOutput += "$eventTime - Threat Removed: $eventMessage`n"
             } elseif ($eventID -eq 1118) {
-                # Threat Quarantined (Blue for action taken)
-                Write-Host "$eventTime - Threat Quarantined: $eventMessage" -ForegroundColor Cyan
+                # Threat Quarantined (Cyan for action taken)
+                $logOutput += "$eventTime - Threat Quarantined: $eventMessage`n"
             } elseif ($eventID -eq 1119) {
                 # Threat Action Failed (Red for failure)
-                Write-Host "$eventTime - Threat Action Failed: $eventMessage" -ForegroundColor Red
+                $logOutput += "$eventTime - Threat Action Failed: $eventMessage`n"
             } elseif ($eventID -eq 5007) {
                 # Antivirus Protection Action (Green for action success)
-                Write-Host "$eventTime - Antivirus Protection Action: $eventMessage" -ForegroundColor Green
+                $logOutput += "$eventTime - Antivirus Protection Action: $eventMessage`n"
             } elseif ($eventID -eq 5010) {
                 # Antivirus Protection Disabled (Red)
-                Write-Host "$eventTime - Antivirus Protection Disabled: $eventMessage" -ForegroundColor Red
+                $logOutput += "$eventTime - Antivirus Protection Disabled: $eventMessage`n"
             }
         }
 
