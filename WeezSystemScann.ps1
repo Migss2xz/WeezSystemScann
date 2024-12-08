@@ -133,9 +133,7 @@ Write-Host "Elapsed Time $t Minutes" -ForegroundColor White
 Write-Host ""
 Write-Host "Select an option:"
 Write-Host -ForegroundColor Green "A. " -NoNewLine; Write-Host -ForegroundColor White "Display system information in a new window"
-Write-Host -ForegroundColor Green "B. " -NoNewLine; Write-Host -ForegroundColor White "Display current/recent devices plugged into the computer"
-Write-Host ""
-
+Write-Host -ForegroundColor Green "B. " -NoNewLine; Write-Host -ForegroundColor White "Do Nothing"
 
 $selection = Read-Host "Enter your choice (A/B)"
 
@@ -148,54 +146,6 @@ switch ($selection) {
         Start-Process cmd.exe -ArgumentList "/K", "mode con: cols=80 lines=20 && systeminfo > $outputFile && type $outputFile | more"
     }
     "B" {
-        $outputFile = [System.IO.Path]::GetTempFileName()
-
-        # Collect USB Devices Information
-        $usbDevices = Get-WmiObject -Query "SELECT * FROM Win32_USBHub"
-        $usbDevicesFormatted = $usbDevices | Select-Object DeviceID, PNPDeviceID, Description, DeviceName
-        $usbOutput = "Currently Connected USB Devices:`n"
-        $usbDevicesFormatted | ForEach-Object { $usbOutput += "$($_.Description) - Device ID: $($_.DeviceID)`n" }
-
-        # Collect Keyboard Information
-        $keyboards = Get-WmiObject -Class Win32_Keyboard
-        $keyboardsFormatted = $keyboards | Select-Object DeviceID, PNPDeviceID, Description
-        $usbOutput += "`nCurrently Connected Keyboards:`n"
-        $keyboardsFormatted | ForEach-Object { $usbOutput += "$($_.Description) - Device ID: $($_.DeviceID)`n" }
-
-        # Collect Mouse Information
-        $mice = Get-WmiObject -Class Win32_PointingDevice
-        $miceFormatted = $mice | Select-Object DeviceID, PNPDeviceID, Description
-        $usbOutput += "`nCurrently Connected Mice:`n"
-        $miceFormatted | ForEach-Object { $usbOutput += "$($_.Description) - Device ID: $($_.DeviceID)`n" }
-
-        # Collect Audio Device Information
-        $audioDevices = Get-WmiObject -Class Win32_SoundDevice
-        $audioDevicesFormatted = $audioDevices | Select-Object DeviceID, PNPDeviceID, Description
-        $usbOutput += "`nCurrently Connected Audio Devices:`n"
-        $audioDevicesFormatted | ForEach-Object { $usbOutput += "$($_.Description) - Device ID: $($_.DeviceID)`n" }
-
-        # Collect Recently Removed USB Devices
-        $removedUsbEvents = Get-WinEvent -LogName System | Where-Object { $_.Id -eq 2102 -or $_.Id -eq 2103 } | Select-Object TimeCreated, Id, Message | Sort-Object TimeCreated -Descending
-        $usbOutput += "`nRecently Removed USB Devices:`n"
-        if ($removedUsbEvents.Count -gt 0) {
-            $removedUsbEvents | ForEach-Object { $usbOutput += "Event ID: $($_.Id) - $($_.Message) at $($_.TimeCreated)`n" }
-        } else {
-            $usbOutput += "No recently removed USB devices found.`n"
-        }
-
-        # Collect Recently Removed General Devices
-        $removedDevicesEvents = Get-WinEvent -LogName System | Where-Object { $_.Id -eq 104 -or $_.Id -eq 2003 } | Select-Object TimeCreated, Id, Message | Sort-Object TimeCreated -Descending
-        $usbOutput += "`nGeneral Device Removal Events:`n"
-        if ($removedDevicesEvents.Count -gt 0) {
-            $removedDevicesEvents | ForEach-Object { $usbOutput += "Event ID: $($_.Id) - $($_.Message) at $($_.TimeCreated)`n" }
-        } else {
-            $usbOutput += "No recent general device removal events found.`n"
-        }
-
-        # Write the USB information to the temp output file
-        Set-Content -Path $outputFile -Value $usbOutput
-
-        # Start a new cmd process to display the USB output in a new command prompt window
-        Start-Process cmd.exe -ArgumentList "/K", "mode con: cols=80 lines=20 && type $outputFile | more"
+        # Option B does nothing
     }
 }
