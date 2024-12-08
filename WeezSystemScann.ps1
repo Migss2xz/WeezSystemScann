@@ -132,7 +132,7 @@ Write-Host "Elapsed Time $t Minutes" -ForegroundColor White
 # Interaction menu
 Write-Host ""
 Write-Host "Select an option:"
-Write-Host "A. Display system information"
+Write-Host "A. Display system information in a new window"
 Write-Host "B. Other Option (Your other functionality)"
 Write-Host ""
 
@@ -140,10 +140,22 @@ $selection = Read-Host "Enter your choice (A/B)"
 
 switch ($selection) {
     "A" {
-        # Display system information using 'systeminfo'
-        Write-Host "Fetching system information..." -ForegroundColor Green
-        $systemInfo = Invoke-Expression "systeminfo"
-        Write-Host $systemInfo -ForegroundColor White
+        # Launch a new console window to display system info
+        Start-Process powershell -ArgumentList "-NoExit", "-Command", "
+            Clear-Host
+            Write-Host 'Fetching system information...' -ForegroundColor Green
+
+            # Run systeminfo and format it
+            $systemInfo = systeminfo | ForEach-Object {
+                if ($_ -match '^(.*?):\s*(.*)$') {
+                    $key = $matches[1].Trim()
+                    $value = $matches[2].Trim()
+                    '$key`t$value'
+                }
+            }
+
+            # Display formatted system information
+            $systemInfo" 
     }
     "B" {
         # Handle your other functionality here
@@ -152,4 +164,3 @@ switch ($selection) {
     default {
         Write-Host "Invalid selection!" -ForegroundColor Red
     }
-}
