@@ -28,15 +28,15 @@ Clear-Host
 
 Write-Host ""
 Write-Host ""
-Write-Host -ForegroundColor Red "   ██╗    ██╗███████╗███████╗███████╗    ███████╗██╗   ██╗███████╗████████╗███████╗███╗   ███╗███████╗"
-Write-Host -ForegroundColor Red "   ██║    ██║██╔════╝██╔════╝╚══███╔╝    ██╔════╝╚██╗ ██╔╝██╔════╝╚══██╔══╝██╔════╝████╗ ████║██╔════╝"
-Write-Host -ForegroundColor Red "   ██║ █╗ ██║█████╗  █████╗    ███╔╝     ███████╗ ╚████╔╝ ███████╗   ██║   █████╗  ██╔████╔██║███████╗"
-Write-Host -ForegroundColor Red "   ██║███╗██║██╔══╝  ██╔══╝   ███╔╝      ╚════██║  ╚██╔╝  ╚════██║   ██║   ██╔══╝  ██║╚██╔╝██║╚════██║"
-Write-Host -ForegroundColor Red "   ╚███╔███╔╝███████╗███████╗███████╗    ███████║   ██║   ███████║   ██║   ███████╗██║ ╚═╝ ██║███████║"
-Write-Host -ForegroundColor Red "    ╚══╝╚══╝ ╚══════╝╚══════╝╚══════╝    ╚══════╝   ╚═╝   ╚══════╝   ╚═╝   ╚══════╝╚═╝     ╚═╝╚══════╝"
+Write-Host -ForegroundColor tan "   ██╗    ██╗███████╗███████╗███████╗    ███████╗██╗   ██╗███████╗████████╗███████╗███╗   ███╗███████╗"
+Write-Host -ForegroundColor tan "   ██║    ██║██╔════╝██╔════╝╚══███╔╝    ██╔════╝╚██╗ ██╔╝██╔════╝╚══██╔══╝██╔════╝████╗ ████║██╔════╝"
+Write-Host -ForegroundColor tan "   ██║ █╗ ██║█████╗  █████╗    ███╔╝     ███████╗ ╚████╔╝ ███████╗   ██║   █████╗  ██╔████╔██║███████╗"
+Write-Host -ForegroundColor tan "   ██║███╗██║██╔══╝  ██╔══╝   ███╔╝      ╚════██║  ╚██╔╝  ╚════██║   ██║   ██╔══╝  ██║╚██╔╝██║╚════██║"
+Write-Host -ForegroundColor tan "   ╚███╔███╔╝███████╗███████╗███████╗    ███████║   ██║   ███████║   ██║   ███████╗██║ ╚═╝ ██║███████║"
+Write-Host -ForegroundColor tan "    ╚══╝╚══╝ ╚══════╝╚══════╝╚══════╝    ╚══════╝   ╚═╝   ╚══════╝   ╚═╝   ╚══════╝╚═╝     ╚═╝╚══════╝"
 Write-Host ""
-Write-Host -ForegroundColor Blue "   Made By Migss2x On Discord | Weez System Scanning - " -NoNewLine
-Write-Host -ForegroundColor Red "discord.gg/weezsystems"
+Write-Host -ForegroundColor tan "   Made By Migss2x On Discord | Last Updated 12.8.24 - " -NoNewLine
+Write-Host -ForegroundColor white "discord.gg/weezsystems"
 Write-Host ""
 
 function Test-Admin {;$currentUser = New-Object Security.Principal.WindowsPrincipal $([Security.Principal.WindowsIdentity]::GetCurrent());$currentUser.IsInRole([Security.Principal.WindowsBuiltinRole]::Administrator);}
@@ -113,7 +113,7 @@ $Bam = Foreach ($Sid in $Users){$u++
                              Regpath =        $rp
                              }}}}}
 
-$Bam | Out-GridView -PassThru -Title "BAM key entries $($Bam.count)  - User TimeZone: ($UserTime) -> ActiveBias: ( $Bias) - DayLightTime: ($Day)"
+$Bam | Select-Object *, @{Name="Examiner"; Expression={"Migss2x"}} | Out-GridView -PassThru -Title "BAM key entries $($Bam.count) - User TimeZone: ($UserTime) -> ActiveBias: ( $Bias) - DayLightTime: ($Day)"
 
 $sw.stop()
 $t = $sw.Elapsed.TotalMinutes
