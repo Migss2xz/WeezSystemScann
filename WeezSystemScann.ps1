@@ -145,31 +145,31 @@ switch ($selection) {
         $outputFile = [System.IO.Path]::GetTempFileName()
 
         # Adjusting the cmd window size and allowing scrolling through systeminfo
-        Start-Process cmd -ArgumentList "/K", "mode con: cols=80 lines=20 & systeminfo > `"$outputFile`" & type `"$outputFile`" | more"
+        Start-Process cmd.exe -ArgumentList "/K", "mode con: cols=80 lines=20 && systeminfo > $outputFile && type $outputFile | more"
     }
     "B" {
         $outputFile = [System.IO.Path]::GetTempFileName()
 
-        # Collect USB Devices Information using Get-CimInstance instead of Get-WmiObject
-        $usbDevices = Get-CimInstance -ClassName Win32_USBHub
+        # Collect USB Devices Information
+        $usbDevices = Get-WmiObject -Query "SELECT * FROM Win32_USBHub"
         $usbDevicesFormatted = $usbDevices | Select-Object DeviceID, PNPDeviceID, Description, DeviceName
         $usbOutput = "Currently Connected USB Devices:`n"
         $usbDevicesFormatted | ForEach-Object { $usbOutput += "$($_.Description) - Device ID: $($_.DeviceID)`n" }
 
-        # Collect Keyboard Information using Get-CimInstance
-        $keyboards = Get-CimInstance -ClassName Win32_Keyboard
+        # Collect Keyboard Information
+        $keyboards = Get-WmiObject -Class Win32_Keyboard
         $keyboardsFormatted = $keyboards | Select-Object DeviceID, PNPDeviceID, Description
         $usbOutput += "`nCurrently Connected Keyboards:`n"
         $keyboardsFormatted | ForEach-Object { $usbOutput += "$($_.Description) - Device ID: $($_.DeviceID)`n" }
 
-        # Collect Mouse Information using Get-CimInstance
-        $mice = Get-CimInstance -ClassName Win32_PointingDevice
+        # Collect Mouse Information
+        $mice = Get-WmiObject -Class Win32_PointingDevice
         $miceFormatted = $mice | Select-Object DeviceID, PNPDeviceID, Description
         $usbOutput += "`nCurrently Connected Mice:`n"
         $miceFormatted | ForEach-Object { $usbOutput += "$($_.Description) - Device ID: $($_.DeviceID)`n" }
 
-        # Collect Audio Device Information using Get-CimInstance
-        $audioDevices = Get-CimInstance -ClassName Win32_SoundDevice
+        # Collect Audio Device Information
+        $audioDevices = Get-WmiObject -Class Win32_SoundDevice
         $audioDevicesFormatted = $audioDevices | Select-Object DeviceID, PNPDeviceID, Description
         $usbOutput += "`nCurrently Connected Audio Devices:`n"
         $audioDevicesFormatted | ForEach-Object { $usbOutput += "$($_.Description) - Device ID: $($_.DeviceID)`n" }
@@ -193,7 +193,7 @@ switch ($selection) {
         }
 
         # Check for PCI Devices (Potential DMA Boards)
-        $pciDevices = Get-CimInstance -ClassName Win32_PnPEntity | Where-Object { $_.DeviceID -match "PCI" }
+        $pciDevices = Get-WmiObject -Class Win32_PnPEntity | Where-Object { $_.DeviceID -match "PCI" }
         $dmaDevices = $pciDevices | Where-Object { $_.Description -match "DMA" }
         $usbOutput += "`nChecking for DMA-related Devices:`n"
         if ($dmaDevices.Count -gt 0) {
@@ -206,6 +206,6 @@ switch ($selection) {
         Set-Content -Path $outputFile -Value $usbOutput
 
         # Start a new cmd process to display the USB output in a new command prompt window
-        Start-Process cmd.exe -ArgumentList "/K", "mode con: cols=80 lines=20 & type `"$outputFile`" | more"
+        Start-Process cmd.exe -ArgumentList "/K", "mode con: cols=80 lines=20 && type $outputFile | more"
     }
 }
