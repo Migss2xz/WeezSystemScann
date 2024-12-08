@@ -192,16 +192,6 @@ switch ($selection) {
             $usbOutput += "No recent general device removal events found.`n"
         }
 
-        # Check for PCI Devices (Potential DMA Boards)
-        $pciDevices = Get-WmiObject -Class Win32_PnPEntity | Where-Object { $_.DeviceID -match "PCI" }
-        $dmaDevices = $pciDevices | Where-Object { $_.Description -match "DMA" }
-        $usbOutput += "`nChecking for DMA-related Devices:`n"
-        if ($dmaDevices.Count -gt 0) {
-            $dmaDevices | ForEach-Object { $usbOutput += "DMA-Related Device Found: $($_.Description) - Device ID: $($_.DeviceID)`n" }
-        } else {
-            $usbOutput += "No DMA-related devices found.`n"
-        }
-
         # Write the USB information to the temp output file
         Set-Content -Path $outputFile -Value $usbOutput
 
