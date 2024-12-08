@@ -28,15 +28,15 @@ Clear-Host
 
 Write-Host ""
 Write-Host ""
-Write-Host -ForegroundColor White "   ██╗    ██╗███████╗███████╗███████╗    ███████╗██╗   ██╗███████╗████████╗███████╗███╗   ███╗███████╗"
-Write-Host -ForegroundColor White "   ██║    ██║██╔════╝██╔════╝╚══███╔╝    ██╔════╝╚██╗ ██╔╝██╔════╝╚══██╔══╝██╔════╝████╗ ████║██╔════╝"
-Write-Host -ForegroundColor White "   ██║ █╗ ██║█████╗  █████╗    ███╔╝     ███████╗ ╚████╔╝ ███████╗   ██║   █████╗  ██╔████╔██║███████╗"
-Write-Host -ForegroundColor White "   ██║███╗██║██╔══╝  ██╔══╝   ███╔╝      ╚════██║  ╚██╔╝  ╚════██║   ██║   ██╔══╝  ██║╚██╔╝██║╚════██║"
-Write-Host -ForegroundColor White "   ╚███╔███╔╝███████╗███████╗███████╗    ███████║   ██║   ███████║   ██║   ███████╗██║ ╚═╝ ██║███████║"
-Write-Host -ForegroundColor White "    ╚══╝╚══╝ ╚══════╝╚══════╝╚══════╝    ╚══════╝   ╚═╝   ╚══════╝   ╚═╝   ╚══════╝╚═╝     ╚═╝╚══════╝"
+Write-Host -ForegroundColor tan "   ██╗    ██╗███████╗███████╗███████╗    ███████╗██╗   ██╗███████╗████████╗███████╗███╗   ███╗███████╗"
+Write-Host -ForegroundColor tan "   ██║    ██║██╔════╝██╔════╝╚══███╔╝    ██╔════╝╚██╗ ██╔╝██╔════╝╚══██╔══╝██╔════╝████╗ ████║██╔════╝"
+Write-Host -ForegroundColor tan "   ██║ █╗ ██║█████╗  █████╗    ███╔╝     ███████╗ ╚████╔╝ ███████╗   ██║   █████╗  ██╔████╔██║███████╗"
+Write-Host -ForegroundColor tan "   ██║███╗██║██╔══╝  ██╔══╝   ███╔╝      ╚════██║  ╚██╔╝  ╚════██║   ██║   ██╔══╝  ██║╚██╔╝██║╚════██║"
+Write-Host -ForegroundColor tan "   ╚███╔███╔╝███████╗███████╗███████╗    ███████║   ██║   ███████║   ██║   ███████╗██║ ╚═╝ ██║███████║"
+Write-Host -ForegroundColor tan "    ╚══╝╚══╝ ╚══════╝╚══════╝╚══════╝    ╚══════╝   ╚═╝   ╚══════╝   ╚═╝   ╚══════╝╚═╝     ╚═╝╚══════╝"
 Write-Host ""
-Write-Host -ForegroundColor White "   Made By Migss2x On Discord | Last Updated 12/8/24 - " -NoNewLine
-Write-Host -ForegroundColor Blue "discord.gg/weezsystems"
+Write-Host -ForegroundColor tan "   Made By Migss2x On Discord | Last Updated 12.8.24 - " -NoNewLine
+Write-Host -ForegroundColor white "discord.gg/weezsystems"
 Write-Host ""
 
 function Test-Admin {;$currentUser = New-Object Security.Principal.WindowsPrincipal $([Security.Principal.WindowsIdentity]::GetCurrent());$currentUser.IsInRole([Security.Principal.WindowsBuiltinRole]::Administrator);}
@@ -68,7 +68,7 @@ $Bam = Foreach ($Sid in $Users){$u++
             
         foreach($rp in $rpath){
            $BamItems = Get-Item -Path "$($rp)UserSettings\$Sid" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Property
-           Write-Host -ForegroundColor White "Extracting " -NoNewLine
+           Write-Host -ForegroundColor Red "Extracting " -NoNewLine
            Write-Host -ForegroundColor Blue "$($rp)UserSettings\$SID"
            $bi = 0 
 
@@ -105,6 +105,8 @@ $Bam = Foreach ($Sid in $Users){$u++
                             'Examiner Time' = $TimeLocal
 						    'Last Execution Time (UTC)'= $TimeUTC
 						    'Last Execution User Time' = $TimeUser
+						     Application = 	$f
+						     Path =  		$path
                              Signature =          $Sig
 						     User =         $User
 						     SID =          $Sid
@@ -116,4 +118,4 @@ $Bam | Select-Object *, @{Name="Examiner"; Expression={"Migss2x"}} | Out-GridVie
 $sw.stop()
 $t = $sw.Elapsed.TotalMinutes
 Write-Host ""
-Write-Host "Elapsed Time $t Minutes" -ForegroundColor Blue
+Write-Host "Elapsed Time $t Minutes" -ForegroundColor Yellow
