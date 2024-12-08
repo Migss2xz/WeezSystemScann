@@ -175,16 +175,24 @@ switch ($selection) {
     }
     "D" {
         # Recent User Logins
-        $logonEvents = Get-WinEvent -LogName Security | Where-Object { $_.Id -eq 528 } | Select-Object -First 10
-        $logonEvents | ForEach-Object {
-            $username = ($_ | Select-Object -ExpandProperty Message) -match "Account Name:\s+(\w+)" | Out-Null; $matches[1]
-            $logonTime = $_.TimeCreated
-            Write-Host "User: $username - Logged in at: $logonTime"
+        try {
+            $logonEvents = Get-WinEvent -LogName Security | Where-Object { $_.Id -eq 528 } | Select-Object -First 10
+            $logonEvents | ForEach-Object {
+                $username = ($_ | Select-Object -ExpandProperty Message) -match "Account Name:\s+(\w+)" | Out-Null; $matches[1]
+                $logonTime = $_.TimeCreated
+                Write-Host "User: $username - Logged in at: $logonTime"
+            }
+        } catch {
+            Write-Host "Error fetching logon events: $_" -ForegroundColor Red
         }
     }
     "E" {
         # Display Security and Anti-Malware Scan History
-        Get-WinEvent -LogName 'Microsoft-Windows-Security/Operational' -FilterXPath "*[EventData[Data[@Name='ActionType'] and (Data='Scan')]]" | Select-Object TimeCreated, Message | Sort-Object TimeCreated -Descending | Format-Table -AutoSize
+        try {
+            Get-WinEvent -LogName 'Microsoft-Windows-Security/Operational' -FilterXPath "*[EventData[Data[@Name='ActionType'] and (Data='Scan')]]" | Select-Object TimeCreated, Message | Sort-Object TimeCreated -Descending | Format-Table -AutoSize
+        } catch {
+            Write-Host "Error fetching scan history: $_" -ForegroundColor Red
+        }
     }
     "F" {
         # Check for local user accounts
