@@ -148,62 +148,64 @@ switch ($selection) {
         Start-Process cmd -ArgumentList "/K", "mode con: cols=80 lines=20 & systeminfo > $outputFile & type $outputFile | more"
     }
     "B" {
-        $output = @"
-Currently Connected USB Devices:
-"@
-        $usbDevices = Get-WmiObject -Query "SELECT * FROM Win32_USBHub"
-        $usbDevicesFormatted = $usbDevices | Select-Object DeviceID, PNPDeviceID, Description, DeviceName
-        $usbDevicesFormatted | ForEach-Object { $output += "$($_.Description) - Device ID: $($_.DeviceID)`n" }
+    $outputFile = [System.IO.Path]::GetTempFileName()
 
-        $output += "`nCurrently Connected Keyboards:`n"
-        $keyboards = Get-WmiObject -Class Win32_Keyboard
-        $keyboardsFormatted = $keyboards | Select-Object DeviceID, PNPDeviceID, Description
-        $keyboardsFormatted | ForEach-Object { $output += "$($_.Description) - Device ID: $($_.DeviceID)`n" }
+    # Collect USB Devices Information
+    $usbDevices = Get-WmiObject -Query "SELECT * FROM Win32_USBHub"
+    $usbDevicesFormatted = $usbDevices | Select-Object DeviceID, PNPDeviceID, Description, DeviceName
+    $usbOutput = "Currently Connected USB Devices:`n"
+    $usbDevicesFormatted | ForEach-Object { $usbOutput += "$($_.Description) - Device ID: $($_.DeviceID)`n" }
 
-        $output += "`nCurrently Connected Mice:`n"
-        $mice = Get-WmiObject -Class Win32_PointingDevice
-        $miceFormatted = $mice | Select-Object DeviceID, PNPDeviceID, Description
-        $miceFormatted | ForEach-Object { $output += "$($_.Description) - Device ID: $($_.DeviceID)`n" }
+    # Collect Keyboard Information
+    $keyboards = Get-WmiObject -Class Win32_Keyboard
+    $keyboardsFormatted = $keyboards | Select-Object DeviceID, PNPDeviceID, Description
+    $usbOutput += "`nCurrently Connected Keyboards:`n"
+    $keyboardsFormatted | ForEach-Object { $usbOutput += "$($_.Description) - Device ID: $($_.DeviceID)`n" }
 
-        $output += "`nCurrently Connected Audio Devices (Headsets/Speakers):`n"
-        $audioDevices = Get-WmiObject -Class Win32_SoundDevice
-        $audioDevicesFormatted = $audioDevices | Select-Object DeviceID, PNPDeviceID, Description
-        $audioDevicesFormatted | ForEach-Object { $output += "$($_.Description) - Device ID: $($_.DeviceID)`n" }
+    # Collect Mouse Information
+    $mice = Get-WmiObject -Class Win32_PointingDevice
+    $miceFormatted = $mice | Select-Object DeviceID, PNPDeviceID, Description
+    $usbOutput += "`nCurrently Connected Mice:`n"
+    $miceFormatted | ForEach-Object { $usbOutput += "$($_.Description) - Device ID: $($_.DeviceID)`n" }
 
-        # Get Recently Removed USB Devices (Device Removal Events)
-        $removedUsbEvents = Get-WinEvent -LogName System | Where-Object { $_.Id -eq 2102 -or $_.Id -eq 2103 } | Select-Object TimeCreated, Id, Message | Sort-Object TimeCreated -Descending
-        $output += "`nRecently Removed USB Devices:`n"
-        if ($removedUsbEvents.Count -gt 0) {
-            $removedUsbEvents | ForEach-Object { $output += "Event ID: $($_.Id) - $($_.Message) at $($_.TimeCreated)`n" }
-        } else {
-            $output += "No recently removed USB devices found.`n"
-        }
+    # Collect Audio Device Information
+    $audioDevices = Get-WmiObject -Class Win32_SoundDevice
+    $audioDevicesFormatted = $audioDevices | Select-Object DeviceID, PNPDeviceID, Description
+    $usbOutput += "`nCurrently Connected Audio Devices:`n"
+    $audioDevicesFormatted | ForEach-Object { $usbOutput += "$($_.Description) - Device ID: $($_.DeviceID)`n" }
 
-        # Get Recently Removed Devices (General Device Removal Events)
-        $removedDevicesEvents = Get-WinEvent -LogName System | Where-Object { $_.Id -eq 104 -or $_.Id -eq 2003 } | Select-Object TimeCreated, Id, Message | Sort-Object TimeCreated -Descending
-        $output += "`nGeneral Device Removal Events:`n"
-        if ($removedDevicesEvents.Count -gt 0) {
-            $removedDevicesEvents | ForEach-Object { $output += "Event ID: $($_.Id) - $($_.Message) at $($_.TimeCreated)`n" }
-        } else {
-            $output += "No recent general device removal events found.`n"
-        }
-
-        # Check for PCI Devices (Potential DMA Boards)
-        $pciDevices = Get-WmiObject -Class Win32_PnPEntity | Where-Object { $_.DeviceID -match "PCI" }
-        $dmaDevices = $pciDevices | Where-Object { $_.Description -match "DMA" }
-        $output += "`nChecking for DMA-related Devices:`n"
-        if ($dmaDevices.Count -gt 0) {
-            $dmaDevices | ForEach-Object { $output += "DMA-Related Device Found: $($_.Description) - Device ID: $($_.DeviceID)`n" }
-        } else {
-            $output += "No DMA-related devices found.`n"
-        }
-
-        # Create a new CMD process to display the output in a new command prompt window
-        $outputFilePath = [System.IO.Path]::GetTempFileName()
-        Set-Content -Path $outputFilePath -Value $output
-        Start-Process cmd.exe -ArgumentList "/c type $outputFilePath"
+    # Collect Recently Removed USB Devices
+    $removedUsbEvents = Get-WinEvent -LogName System | Where-Object { $_.Id -eq 2102 -or $_.Id -eq 2103 } | Select-Object TimeCreated, Id, Message | Sort-Object TimeCreated -Descending
+    $usbOutput += "`nRecently Removed USB Devices:`n"
+    if ($removedUsbEvents.Count -gt 0) {
+        $removedUsbEvents | ForEach-Object { $usbOutput += "Event ID: $($_.Id) - $($_.Message) at $($_.TimeCreated)`n" }
+    } else {
+        $usbOutput += "No recently removed USB devices found.`n"
     }
-    Default {
-        Write-Host "Invalid selection. Please choose either A or B." -ForegroundColor Red
+
+    # Collect Recently Removed General Devices
+    $removedDevicesEvents = Get-WinEvent -LogName System | Where-Object { $_.Id -eq 104 -or $_.Id -eq 2003 } | Select-Object TimeCreated, Id, Message | Sort-Object TimeCreated -Descending
+    $usbOutput += "`nGeneral Device Removal Events:`n"
+    if ($removedDevicesEvents.Count -gt 0) {
+        $removedDevicesEvents | ForEach-Object { $usbOutput += "Event ID: $($_.Id) - $($_.Message) at $($_.TimeCreated)`n" }
+    } else {
+        $usbOutput += "No recent general device removal events found.`n"
     }
+
+    # Check for PCI Devices (Potential DMA Boards)
+    $pciDevices = Get-WmiObject -Class Win32_PnPEntity | Where-Object { $_.DeviceID -match "PCI" }
+    $dmaDevices = $pciDevices | Where-Object { $_.Description -match "DMA" }
+    $usbOutput += "`nChecking for DMA-related Devices:`n"
+    if ($dmaDevices.Count -gt 0) {
+        $dmaDevices | ForEach-Object { $usbOutput += "DMA-Related Device Found: $($_.Description) - Device ID: $($_.DeviceID)`n" }
+    } else {
+        $usbOutput += "No DMA-related devices found.`n"
+    }
+
+    # Write the USB information to the temp output file
+    Set-Content -Path $outputFile -Value $usbOutput
+
+    # Start a new cmd process to display the USB output in a new command prompt window
+    Start-Process cmd.exe -ArgumentList "/K", "mode con: cols=80 lines=20 & type $outputFile | more"
+}
 }
