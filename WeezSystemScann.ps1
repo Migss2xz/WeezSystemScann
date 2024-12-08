@@ -154,50 +154,59 @@ switch ($selection) {
         $eventIDs = @(5001, 5002, 1116, 1117, 1118, 1119, 5007, 5010) # Includes events for Real-Time Protection ON/OFF, Threat Detection, Antivirus Actions
         
         # Get recent logs related to Real-Time Protection and Threat Detection
-        $protectionLogs = Get-WinEvent -LogName $logName | Where-Object { $eventIDs -contains $_.Id } | Sort-Object TimeCreated | Select-Object -First 20
-        
-        # Prepare the log output variable
-        $logOutput = ""
-
-        # Format and display each log entry with colored output for ON/OFF status
-        foreach ($log in $protectionLogs) {
-            $eventTime = $log.TimeCreated
-            $eventMessage = $log.Message
-            $eventID = $log.Id
+        try {
+            $protectionLogs = Get-WinEvent -LogName $logName | Where-Object { $eventIDs -contains $_.Id } | Sort-Object TimeCreated | Select-Object -First 20
             
-            # Build log output with colored formatting for the console window
-            if ($eventID -eq 5001) {
-                # Real-Time Protection turned ON (Green)
-                $logOutput += "$eventTime - Real-Time Protection ON: $eventMessage`n"
-            } elseif ($eventID -eq 5002) {
-                # Real-Time Protection turned OFF (Red)
-                $logOutput += "$eventTime - Real-Time Protection OFF: $eventMessage`n"
-            } elseif ($eventID -eq 1116) {
-                # Threat Detected (Yellow for warning)
-                $logOutput += "$eventTime - Threat Detected: $eventMessage`n"
-            } elseif ($eventID -eq 1117) {
-                # Threat Removed (Green for successful removal)
-                $logOutput += "$eventTime - Threat Removed: $eventMessage`n"
-            } elseif ($eventID -eq 1118) {
-                # Threat Quarantined (Cyan for action taken)
-                $logOutput += "$eventTime - Threat Quarantined: $eventMessage`n"
-            } elseif ($eventID -eq 1119) {
-                # Threat Action Failed (Red for failure)
-                $logOutput += "$eventTime - Threat Action Failed: $eventMessage`n"
-            } elseif ($eventID -eq 5007) {
-                # Antivirus Protection Action (Green for action success)
-                $logOutput += "$eventTime - Antivirus Protection Action: $eventMessage`n"
-            } elseif ($eventID -eq 5010) {
-                # Antivirus Protection Disabled (Red)
-                $logOutput += "$eventTime - Antivirus Protection Disabled: $eventMessage`n"
-            }
-        }
+            # Debug: Output to ensure we are getting logs
+            if ($protectionLogs.Count -eq 0) {
+                Write-Host "No relevant logs found." -ForegroundColor Red
+            } else {
+                # Prepare log output to store the formatted messages
+                $logOutput = ""
 
-        # Create a new cmd window to display the Anti-Virus logs with timestamps
-        $outputFile = [System.IO.Path]::GetTempFileName()
-        Set-Content -Path $outputFile -Value $logOutput
-        
-        # Start a cmd process to display the logs in a separate window with scrolling
-        Start-Process cmd.exe -ArgumentList "/K", "mode con: cols=80 lines=20 && type $outputFile | more"
+                # Format and display each log entry with colored output for ON/OFF status
+                foreach ($log in $protectionLogs) {
+                    $eventTime = $log.TimeCreated
+                    $eventMessage = $log.Message
+                    $eventID = $log.Id
+                    
+                    # Build log output with colored formatting for the console window
+                    if ($eventID -eq 5001) {
+                        # Real-Time Protection turned ON (Green)
+                        $logOutput += "$eventTime - Real-Time Protection ON: $eventMessage`n"
+                    } elseif ($eventID -eq 5002) {
+                        # Real-Time Protection turned OFF (Red)
+                        $logOutput += "$eventTime - Real-Time Protection OFF: $eventMessage`n"
+                    } elseif ($eventID -eq 1116) {
+                        # Threat Detected (Yellow for warning)
+                        $logOutput += "$eventTime - Threat Detected: $eventMessage`n"
+                    } elseif ($eventID -eq 1117) {
+                        # Threat Removed (Green for successful removal)
+                        $logOutput += "$eventTime - Threat Removed: $eventMessage`n"
+                    } elseif ($eventID -eq 1118) {
+                        # Threat Quarantined (Cyan for action taken)
+                        $logOutput += "$eventTime - Threat Quarantined: $eventMessage`n"
+                    } elseif ($eventID -eq 1119) {
+                        # Threat Action Failed (Red for failure)
+                        $logOutput += "$eventTime - Threat Action Failed: $eventMessage`n"
+                    } elseif ($eventID -eq 5007) {
+                        # Antivirus Protection Action (Green for action success)
+                        $logOutput += "$eventTime - Antivirus Protection Action: $eventMessage`n"
+                    } elseif ($eventID -eq 5010) {
+                        # Antivirus Protection Disabled (Red)
+                        $logOutput += "$eventTime - Antivirus Protection Disabled: $eventMessage`n"
+                    }
+                }
+
+                # If there is output to display, create a new cmd window to show the logs
+                if ($logOutput) {
+                    $outputFile = [System.IO.Path]::GetTempFileName()
+                    Set-Content -Path $outputFile -Value $logOutput
+                    Start-Process cmd.exe -ArgumentList "/K", "mode con: cols=80 lines=20 && type $outputFile | more"
+                }
+            }
+        } catch {
+            Write-Host "Error retrieving logs: $_" -ForegroundColor Red
+        }
     }
 }
