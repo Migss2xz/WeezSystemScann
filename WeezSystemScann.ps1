@@ -129,32 +129,27 @@ $t = $sw.Elapsed.TotalMinutes
 Write-Host ""
 Write-Host "Elapsed Time $t Minutes" -ForegroundColor White
 
-# Interaction menu will pop up after elapsed time is displayed
+# Interaction menu
 Write-Host ""
-Write-Host "Please choose an option:"
-Write-Host "1. Option A"
-Write-Host "2. Option B"
-Write-Host "3. Option C"
+Write-Host "Select an option:"
+Write-Host "A. Display system information"
+Write-Host "B. Other Option (Your other functionality)"
+Write-Host ""
 
-$choice = Read-Host "Enter your choice (1, 2, or 3)"
+$selection = Read-Host "Enter your choice (A/B)"
 
-switch ($choice) {
-    1 {
-        Write-Host "You selected Option A."
-        # Add action for Option A here
-        break
+switch ($selection) {
+    "A" {
+        # Display system information using 'systeminfo'
+        Write-Host "Fetching system information..." -ForegroundColor Green
+        $systemInfo = Invoke-Expression "systeminfo"
+        Write-Host $systemInfo -ForegroundColor White
     }
-    2 {
-        Write-Host "You selected Option B."
-        # Add action for Option B here
-        break
-    }
-    3 {
-        Write-Host "You selected Option C."
-        # Add action for Option C here
-        break
+    "B" {
+        # Handle your other functionality here
+        Write-Host "You selected option B" -ForegroundColor Green
     }
     default {
-        Write-Host "Invalid selection. Please try again."
+        Write-Host "Invalid selection!" -ForegroundColor Red
     }
 }
