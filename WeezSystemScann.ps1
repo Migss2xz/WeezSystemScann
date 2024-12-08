@@ -164,4 +164,5 @@ switch ($selection) {
     default {
         Write-Host "Invalid selection!" -ForegroundColor Red
     }
+}   }
 }
