@@ -132,9 +132,10 @@ Write-Host "Elapsed Time $t Minutes" -ForegroundColor White
 # Interaction menu
 Write-Host ""
 Write-Host "Select an option:"
-Write-Host "A. Display system information in a new window"
-Write-Host "B. Other Option (Your other functionality)"
+Write-Host -ForegroundColor White "A. " -NoNewLine; Write-Host -ForegroundColor Green "Display system information in a new window"
+Write-Host -ForegroundColor White "B. " -NoNewLine; Write-Host -ForegroundColor Green "Display current/recent devices plugged into the computer"
 Write-Host ""
+
 
 $selection = Read-Host "Enter your choice (A/B)"
 
@@ -147,9 +148,40 @@ switch ($selection) {
         Start-Process cmd -ArgumentList "/K", "mode con: cols=80 lines=20 & systeminfo > $outputFile & type $outputFile | more"
     }
     "B" {
-        # Handle your other functionality here
-        Write-Host "You selected option B" -ForegroundColor Green
-    }
+    # Get USB devices
+    $usbDevices = Get-WmiObject -Query "SELECT * FROM Win32_USBHub"
+    $usbDevicesFormatted = $usbDevices | Select-Object DeviceID, PNPDeviceID, Description
+
+    # Get keyboard devices
+    $keyboards = Get-WmiObject -Class Win32_Keyboard
+    $keyboardsFormatted = $keyboards | Select-Object DeviceID, PNPDeviceID, Description
+
+    # Get mouse devices
+    $mice = Get-WmiObject -Class Win32_PointingDevice
+    $miceFormatted = $mice | Select-Object DeviceID, PNPDeviceID, Description
+
+    # Get audio devices (headsets/speakers)
+    $audioDevices = Get-WmiObject -Class Win32_SoundDevice
+    $audioDevicesFormatted = $audioDevices | Select-Object DeviceID, PNPDeviceID, Description
+
+    # Display all devices
+    Write-Host "Connected USB Devices:" -ForegroundColor Green
+    $usbDevicesFormatted | ForEach-Object { Write-Host "$($_.Description) - Device ID: $($_.DeviceID)" }
+
+    Write-Host ""
+    Write-Host "Connected Keyboards:" -ForegroundColor Green
+    $keyboardsFormatted | ForEach-Object { Write-Host "$($_.Description) - Device ID: $($_.DeviceID)" }
+
+    Write-Host ""
+    Write-Host "Connected Mice:" -ForegroundColor Green
+    $miceFormatted | ForEach-Object { Write-Host "$($_.Description) - Device ID: $($_.DeviceID)" }
+
+    Write-Host ""
+    Write-Host "Connected Audio Devices (Headsets/Speakers):" -ForegroundColor Green
+    $audioDevicesFormatted | ForEach-Object { Write-Host "$($_.Description) - Device ID: $($_.DeviceID)" }
+    
+    # Optionally, display more device types by adding additional queries for other hardware types.
+}
     default {
         Write-Host "Invalid selection!" -ForegroundColor Red
     }
