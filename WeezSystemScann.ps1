@@ -133,8 +133,11 @@ Write-Host ""
 Write-Host "Select an option:"
 Write-Host -ForegroundColor Green "A. " -NoNewLine; Write-Host -ForegroundColor White "Display system information in a new window"
 Write-Host -ForegroundColor Green "B. " -NoNewLine; Write-Host -ForegroundColor White "Display recent Anti-Virus logs/flags"
+Write-Host -ForegroundColor Green "C. " -NoNewLine; Write-Host -ForegroundColor White "List Installed Software"
+Write-Host -ForegroundColor Green "D. " -NoNewLine; Write-Host -ForegroundColor White "Display Recent User Logins"
+Write-Host -ForegroundColor Green "E. " -NoNewLine; Write-Host -ForegroundColor White "View Security and Anti-Malware Scan History"
 
-$selection = Read-Host "Enter your choice (A/B)"
+$selection = Read-Host "Enter your choice (A/B/C/D/E)"
 
 switch ($selection) {
     "A" {
@@ -156,15 +159,10 @@ switch ($selection) {
         # Get recent logs related to Real-Time Protection and Threat Detection
         try {
             $protectionLogs = Get-WinEvent -LogName $logName | Where-Object { $eventIDs -contains $_.Id } | Sort-Object TimeCreated | Select-Object -First 20
-            
-            # Debug: Output to ensure we are getting logs
             if ($protectionLogs.Count -eq 0) {
                 Write-Host "No relevant logs found." -ForegroundColor Red
             } else {
-                # Prepare log output to store the formatted messages
                 $logOutput = ""
-
-                # Format and display each log entry with colored output for ON/OFF status
                 foreach ($log in $protectionLogs) {
                     $eventTime = $log.TimeCreated
                     $eventMessage = $log.Message
@@ -172,41 +170,70 @@ switch ($selection) {
                     
                     # Build log output with colored formatting for the console window
                     if ($eventID -eq 5001) {
-                        # Real-Time Protection turned ON (Green)
                         $logOutput += "$eventTime - Real-Time Protection ON: $eventMessage`n"
                     } elseif ($eventID -eq 5002) {
-                        # Real-Time Protection turned OFF (Red)
                         $logOutput += "$eventTime - Real-Time Protection OFF: $eventMessage`n"
                     } elseif ($eventID -eq 1116) {
-                        # Threat Detected (Yellow for warning)
                         $logOutput += "$eventTime - Threat Detected: $eventMessage`n"
                     } elseif ($eventID -eq 1117) {
-                        # Threat Removed (Green for successful removal)
                         $logOutput += "$eventTime - Threat Removed: $eventMessage`n"
                     } elseif ($eventID -eq 1118) {
-                        # Threat Quarantined (Cyan for action taken)
                         $logOutput += "$eventTime - Threat Quarantined: $eventMessage`n"
                     } elseif ($eventID -eq 1119) {
-                        # Threat Action Failed (Red for failure)
-                        $logOutput += "$eventTime - Threat Action Failed: $eventMessage`n"
+                        $logOutput += "$eventTime - Threat Action Completed: $eventMessage`n"
                     } elseif ($eventID -eq 5007) {
-                        # Antivirus Protection Action (Green for action success)
-                        $logOutput += "$eventTime - Antivirus Protection Action: $eventMessage`n"
+                        $logOutput += "$eventTime - Anti-Malware Scan Complete: $eventMessage`n"
                     } elseif ($eventID -eq 5010) {
-                        # Antivirus Protection Disabled (Red)
-                        $logOutput += "$eventTime - Antivirus Protection Disabled: $eventMessage`n"
+                        $logOutput += "$eventTime - Anti-Malware Scan Started: $eventMessage`n"
                     }
                 }
-
-                # If there is output to display, create a new cmd window to show the logs
-                if ($logOutput) {
-                    $outputFile = [System.IO.Path]::GetTempFileName()
-                    Set-Content -Path $outputFile -Value $logOutput
-                    Start-Process cmd.exe -ArgumentList "/K", "mode con: cols=80 lines=20 && type $outputFile | more"
-                }
+                
+                # Display the logs in the console
+                Write-Host $logOutput
             }
         } catch {
-            Write-Host "Error retrieving logs: $_" -ForegroundColor Red
+            Write-Host "Error fetching logs: $_" -ForegroundColor Red
         }
+    }
+    "C" {
+        # List Installed Software
+        Get-WmiObject -Class Win32_Product | Select-Object Name, Version, Vendor | Sort-Object Name
+    }
+    "D" {
+        # Recent User Logins
+        $logonEvents = Get-WinEvent -LogName Security | Where-Object { $_.Id -eq 528 } | Select-Object -First 10
+        $logonEvents | ForEach-Object {
+            $username = ($_ | Select-Object -ExpandProperty Message) -match "Account Name:\s+(\w+)" | Out-Null; $matches[1]
+            $logonTime = $_.TimeCreated
+            Write-Host "User: $username - Logged in at: $logonTime"
+        }
+    }
+    "E" {
+        # Display Security and Anti-Malware Scan History
+        Get-WinEvent -LogName 'Microsoft-Windows-Security/Operational' -FilterXPath "*[EventData[Data[@Name='ActionType'] and (Data='Scan')]]" | Select-Object TimeCreated, Message | Sort-Object TimeCreated -Descending | Format-Table -AutoSize
+    }
+    "F" {
+    # Check for local user accounts
+    try {
+        $userAccounts = Get-WmiObject -Class Win32_UserAccount | Where-Object { $_.LocalAccount -eq $true }
+        $accountCount = $userAccounts.Count
+
+        if ($accountCount -eq 0) {
+            Write-Host "No local user accounts found." -ForegroundColor Red
+        } elseif ($accountCount -eq 1) {
+            Write-Host "There is 1 local user account." -ForegroundColor Green
+        } else {
+            Write-Host "There are $accountCount local user accounts." -ForegroundColor Green
+        }
+
+        # Optionally list the accounts
+        $userAccounts | Select-Object Name, Disabled, Lockout | Format-Table -AutoSize
+    } catch {
+        Write-Host "Error fetching user accounts: $_" -ForegroundColor Red
+    }
+}
+
+    default {
+        Write-Host "Invalid selection, please choose A, B, C, D, or E." -ForegroundColor Red
     }
 }
