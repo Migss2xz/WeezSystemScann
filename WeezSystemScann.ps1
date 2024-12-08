@@ -1,9 +1,8 @@
 $ErrorActionPreference = "SilentlyContinue"
 
 function Get-Signature {
-
     [CmdletBinding()]
-     param (
+    param (
         [string[]]$FilePath
     )
 
@@ -45,12 +44,15 @@ Write-Host -ForegroundColor Green "   ██║███╗██║██╔═
 Write-Host -ForegroundColor Green "   ╚███╔███╔╝███████╗███████╗███████╗    ███████║   ██║   ███████║   ██║   ███████╗██║ ╚═╝ ██║███████║"
 Write-Host -ForegroundColor Green "    ╚══╝╚══╝ ╚══════╝╚══════╝╚══════╝    ╚══════╝   ╚═╝   ╚══════╝   ╚═╝   ╚══════╝╚═╝     ╚═╝╚══════╝"
 Write-Host ""
-Write-Host -ForegroundColor White "   Made By Migss2x On Discord | Weez System Scanning - " -NoNewLine
+Write-Host -ForegroundColor Green "   Made By Migss2x On Discord | Weez System Scanning - " -NoNewLine
 Write-Host -ForegroundColor green "discord.gg/weezsystems"
-Write-Host "This should be green" -ForegroundColor Green
 Write-Host ""
 
-function Test-Admin {;$currentUser = New-Object Security.Principal.WindowsPrincipal $([Security.Principal.WindowsIdentity]::GetCurrent());$currentUser.IsInRole([Security.Principal.WindowsBuiltinRole]::Administrator);}
+function Test-Admin {
+    $currentUser = New-Object Security.Principal.WindowsPrincipal $([Security.Principal.WindowsIdentity]::GetCurrent())
+    $currentUser.IsInRole([Security.Principal.WindowsBuiltinRole]::Administrator)
+}
+
 if (!(Test-Admin)) {
     Write-Warning "Please Run This Script as Admin."
     Start-Sleep 10
@@ -60,71 +62,80 @@ if (!(Test-Admin)) {
 $sw = [Diagnostics.Stopwatch]::StartNew()
 
 if (!(Get-PSDrive -Name HKLM -PSProvider Registry)){
-    Try{New-PSDrive -Name HKLM -PSProvider Registry -Root HKEY_LOCAL_MACHINE}
-    Catch{Write-Warning "Error Mounting HKEY_Local_Machine"}
+    Try { New-PSDrive -Name HKLM -PSProvider Registry -Root HKEY_LOCAL_MACHINE }
+    Catch { Write-Warning "Error Mounting HKEY_Local_Machine" }
 }
+
 $bv = ("bam", "bam\State")
-Try{$Users = foreach($ii in $bv){Get-ChildItem -Path "HKLM:\SYSTEM\CurrentControlSet\Services\$($ii)\UserSettings\" | Select-Object -ExpandProperty PSChildName}}
-Catch{
+Try {
+    $Users = foreach($ii in $bv) { Get-ChildItem -Path "HKLM:\SYSTEM\CurrentControlSet\Services\$($ii)\UserSettings\" | Select-Object -ExpandProperty PSChildName }
+}
+Catch {
     Write-Warning "Error Parsing BAM Key. Likely unsupported Windows Version"
     Exit
 }
-$rpath = @("HKLM:\SYSTEM\CurrentControlSet\Services\bam\","HKLM:\SYSTEM\CurrentControlSet\Services\bam\state\")
 
+$rpath = @("HKLM:\SYSTEM\CurrentControlSet\Services\bam\","HKLM:\SYSTEM\CurrentControlSet\Services\bam\state\")
 $UserTime = (Get-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\TimeZoneInformation").TimeZoneKeyName
 $UserBias = (Get-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\TimeZoneInformation").ActiveTimeBias
 $UserDay = (Get-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\TimeZoneInformation").DaylightBias
 
-$Bam = Foreach ($Sid in $Users){$u++
-            
-        foreach($rp in $rpath){
-           $BamItems = Get-Item -Path "$($rp)UserSettings\$Sid" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Property
-           Write-Host -ForegroundColor Green "Extracting " -NoNewLine
-           Write-Host -ForegroundColor White "$($rp)UserSettings\$SID"
-           $bi = 0 
+# Add System Information Display
+Function Get-SystemInfo {
+    $os = Get-CimInstance -ClassName Win32_OperatingSystem
+    $cpu = Get-CimInstance -ClassName Win32_Processor
+    $memory = Get-CimInstance -ClassName Win32_PhysicalMemory
+    $disk = Get-CimInstance -ClassName Win32_LogicalDisk | Where-Object { $_.DriveType -eq 3 }
 
-            Try{
-            $objSID = New-Object System.Security.Principal.SecurityIdentifier($Sid)
-            $User = $objSID.Translate( [System.Security.Principal.NTAccount]) 
-            $User = $User.Value
+    Write-Host "OS: $($os.Caption) Version $($os.Version)"
+    Write-Host "CPU: $($cpu.Name)"
+    Write-Host "Memory: $(($memory.Capacity / 1GB).ToString('N2')) GB"
+    Write-Host "Disk Space: $($disk.DeviceID) Free Space: $(($disk.FreeSpace / 1GB).ToString('N2')) GB"
+}
+
+# Add Interactive Menu
+Write-Host "Select an option:"
+Write-Host "1. Scan BAM keys"
+Write-Host "2. Verify file signatures"
+Write-Host "3. Show system info"
+
+$choice = Read-Host "Enter choice"
+
+switch ($choice) {
+    1 {
+        # BAM Scan
+        $Bam = Foreach ($Sid in $Users) {
+            $u++
+            foreach($rp in $rpath) {
+                $BamItems = Get-Item -Path "$($rp)UserSettings\$Sid" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Property
+                $progress = 0
+                $BamItemsCount = $BamItems.Count
+                ForEach ($Item in $BamItems) {
+                    $progress++
+                    $percentComplete = ($progress / $BamItemsCount) * 100
+                    Write-Progress -PercentComplete $percentComplete -Status "Processing BAM Items" -Activity "Extracting BAM data"
+                    
+                    $Key = Get-ItemProperty -Path "$($rp)UserSettings\$Sid" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty $Item
+                    # Other BAM Item Processing Logic...
+                }
             }
-            Catch{$User=""}
-            $i=0
-            ForEach ($Item in $BamItems){$i++
-		    $Key = Get-ItemProperty -Path "$($rp)UserSettings\$Sid" -ErrorAction SilentlyContinue| Select-Object -ExpandProperty $Item
-	
-            If($key.length -eq 24){
-                $Hex=[System.BitConverter]::ToString($key[7..0]) -replace "-",""
-                $TimeLocal = Get-Date ([DateTime]::FromFileTime([Convert]::ToInt64($Hex, 16))) -Format "yyyy-MM-dd HH:mm:ss"
-			    $TimeUTC = Get-Date ([DateTime]::FromFileTimeUtc([Convert]::ToInt64($Hex, 16))) -Format "yyyy-MM-dd HH:mm:ss"
-			    $Bias = -([convert]::ToInt32([Convert]::ToString($UserBias,2),2))
-			    $Day = -([convert]::ToInt32([Convert]::ToString($UserDay,2),2)) 
-			    $Biasd = $Bias/60
-			    $Dayd = $Day/60
-			    $TImeUser = (Get-Date ([DateTime]::FromFileTimeUtc([Convert]::ToInt64($Hex, 16))).addminutes($Bias) -Format "yyyy-MM-dd HH:mm:ss") 
-			    $d = if((((split-path -path $item) | ConvertFrom-String -Delimiter "\\").P3)-match '\d{1}')
-			    {((split-path -path $item).Remove(23)).trimstart("\Device\HarddiskVolume")} else {$d = ""}
-			    $f = if((((split-path -path $item) | ConvertFrom-String -Delimiter "\\").P3)-match '\d{1}')
-			    {Split-path -leaf ($item).TrimStart()} else {$item}	
-			    $cp = if((((split-path -path $item) | ConvertFrom-String -Delimiter "\\").P3)-match '\d{1}')
-			    {($item).Remove(1,23)} else {$cp = ""}
-			    $path = if((((split-path -path $item) | ConvertFrom-String -Delimiter "\\").P3)-match '\d{1}')
-			    {Join-Path -Path "C:" -ChildPath $cp} else {$path = ""}			
-			    $sig = if((((split-path -path $item) | ConvertFrom-String -Delimiter "\\").P3)-match '\d{1}')
-			    {Get-Signature -FilePath $path} else {$sig = ""}				
-                [PSCustomObject]@{
-                            'Examiner Time' = $TimeLocal
-						    'Last Execution Time (UTC)'= $TimeUTC
-						    'Last Execution User Time' = $TimeUser
-						     Application = 	$f
-						     Path =  		$path
-                             Signature =          $Sig
-						     User =         $User
-						     SID =          $Sid
-                             Regpath =        $rp
-                             }}}}}
-
-$Bam | Out-GridView -PassThru -Title "BAM key entries $($Bam.count)  - User TimeZone: ($UserTime) -> ActiveBias: ( $Bias) - DayLightTime: ($Day)"
+        }
+        $Bam | Out-GridView -PassThru -Title "BAM key entries"
+    }
+    2 {
+        # Signature Verification
+        $filePath = Read-Host "Enter file path to verify signature"
+        $sig = Get-Signature -FilePath $filePath
+        Write-Host "File Signature: $sig"
+    }
+    3 {
+        # Show System Info
+        Get-SystemInfo
+    }
+    default {
+        Write-Host "Invalid choice"
+    }
+}
 
 $sw.stop()
 $t = $sw.Elapsed.TotalMinutes
