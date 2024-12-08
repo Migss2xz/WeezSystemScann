@@ -1,7 +1,6 @@
 $ErrorActionPreference = "SilentlyContinue"
 
 function Get-Signature {
-
     [CmdletBinding()]
     param (
         [string[]]$FilePath
@@ -127,13 +126,13 @@ $Bam | Out-GridView -PassThru -Title "BAM key entries $($Bam.count)  - User Time
 $sw.stop()
 $t = $sw.Elapsed.TotalMinutes
 Write-Host ""
-Write-Host "Elapsed Time $t Minutes" -ForegroundColor White
+Write-Host "Elapsed Time $t Minutes" -ForegroundColor Red
 
 # Interaction menu
 Write-Host ""
 Write-Host "Select an option:"
 Write-Host -ForegroundColor Green "A. " -NoNewLine; Write-Host -ForegroundColor White "Display system information in a new window"
-Write-Host -ForegroundColor Green "B. " -NoNewLine; Write-Host -ForegroundColor White "Do Nothing"
+Write-Host -ForegroundColor Green "B. " -NoNewLine; Write-Host -ForegroundColor White "Display recent Anti-Virus logs/flags"
 
 $selection = Read-Host "Enter your choice (A/B)"
 
@@ -146,6 +145,16 @@ switch ($selection) {
         Start-Process cmd.exe -ArgumentList "/K", "mode con: cols=80 lines=20 && systeminfo > $outputFile && type $outputFile | more"
     }
     "B" {
-        # Option B does nothing
+        # Display recent Anti-Virus logs/flags from Windows Event Viewer
+        $logName = "Microsoft-Windows-Security-Auditing"
+        $query = "*[System[Provider[@Name='Microsoft-Windows-Security-Auditing']]]"
+        $events = Get-WinEvent -LogName $logName -FilterXPath $query -MaxEvents 10
+
+        if ($events) {
+            Write-Host "Recent Anti-Virus logs/flags:"
+            $events | Select-Object TimeCreated, Message | Format-Table -AutoSize
+        } else {
+            Write-Host "No recent Anti-Virus logs/flags found."
+        }
     }
 }
