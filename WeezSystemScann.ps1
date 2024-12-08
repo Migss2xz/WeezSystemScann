@@ -147,17 +147,21 @@ switch ($selection) {
     "B" {
         # Option B: Display recent Anti-Virus logs/flags from the Windows Event Viewer
         
-        # Define the log name and event IDs that are relevant to Anti-Virus activities
+        # Define the log name and event IDs relevant to Anti-Virus Real-Time Protection changes
         $logName = 'Microsoft-Windows-Security/Operational'
-        $eventIDs = @(1116, 1117, 1118, 1119) # Example Event IDs for Anti-Virus related events
         
-        # Get recent Anti-Virus logs from the event viewer
+        # Event IDs for Real-Time Protection being turned on/off (Example Event IDs):
+        # 5001 = Real-time protection enabled
+        # 5002 = Real-time protection disabled
+        $eventIDs = @(5001, 5002)
+        
+        # Get recent Anti-Virus logs related to Real-Time Protection from the event viewer
         $antivirusLogs = Get-WinEvent -LogName $logName | Where-Object { $eventIDs -contains $_.Id } | Select-Object -First 20
         
         # Format the log output into a string to be displayed in the cmd window
         $logOutput = $antivirusLogs | Format-Table TimeCreated, Id, Message -AutoSize | Out-String
 
-        # Create a new cmd window and display the Anti-Virus logs
+        # Create a new cmd window and display the Anti-Virus logs with timestamps
         $outputFile = [System.IO.Path]::GetTempFileName()
         Set-Content -Path $outputFile -Value $logOutput
         
