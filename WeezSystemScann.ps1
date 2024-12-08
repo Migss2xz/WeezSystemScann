@@ -128,16 +128,18 @@ $t = $sw.Elapsed.TotalMinutes
 Write-Host ""
 Write-Host "Elapsed Time $t Minutes" -ForegroundColor Red
 
- Interaction menu
+# Display the interaction menu with a box around the options
 Write-Host ""
 Write-Host "Select an option:"
-Write-Host -ForegroundColor Green "A. " -NoNewLine; Write-Host -ForegroundColor White "Display system information in a new window"
-Write-Host -ForegroundColor Green "B. " -NoNewLine; Write-Host -ForegroundColor White "Display recent Anti-Virus logs/flags"
-Write-Host -ForegroundColor Green "C. " -NoNewLine; Write-Host -ForegroundColor White "List Installed Software"
-Write-Host -ForegroundColor Green "D. " -NoNewLine; Write-Host -ForegroundColor White "Display Recent User Logins"
-Write-Host -ForegroundColor Green "E. " -NoNewLine; Write-Host -ForegroundColor White "View Security and Anti-Malware Scan History"
-Write-Host -ForegroundColor Green "F. " -NoNewLine; Write-Host -ForegroundColor White "Check for Local User Accounts"
-Write-Host -ForegroundColor Red "X. " -NoNewLine; Write-Host -ForegroundColor White "Exit"
+Write-Host "┌────────────────────────────────────────────────────┐"
+Write-Host "│ " -NoNewLine; Write-Host -ForegroundColor Green "A. " -NoNewLine; Write-Host -ForegroundColor White "Display system information in a new window"
+Write-Host "│ " -NoNewLine; Write-Host -ForegroundColor Green "B. " -NoNewLine; Write-Host -ForegroundColor White "Display recent Anti-Virus logs/flags"
+Write-Host "│ " -NoNewLine; Write-Host -ForegroundColor Green "C. " -NoNewLine; Write-Host -ForegroundColor White "List Installed Software"
+Write-Host "│ " -NoNewLine; Write-Host -ForegroundColor Green "D. " -NoNewLine; Write-Host -ForegroundColor White "Display Recent User Logins"
+Write-Host "│ " -NoNewLine; Write-Host -ForegroundColor Green "E. " -NoNewLine; Write-Host -ForegroundColor White "View Security and Anti-Malware Scan History"
+Write-Host "│ " -NoNewLine; Write-Host -ForegroundColor Green "F. " -NoNewLine; Write-Host -ForegroundColor White "Check for Local User Accounts"
+Write-Host "│ " -NoNewLine; Write-Host -ForegroundColor Red "X. " -NoNewLine; Write-Host -ForegroundColor White "Exit"
+Write-Host "└────────────────────────────────────────────────────┘"
 
 $selection = Read-Host "Enter your choice (A/B/C/D/E/F/X)"
 
