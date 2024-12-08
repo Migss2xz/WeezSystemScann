@@ -145,23 +145,52 @@ switch ($selection) {
         Start-Process cmd.exe -ArgumentList "/K", "mode con: cols=80 lines=20 && systeminfo > $outputFile && type $outputFile | more"
     }
     "B" {
-        # Option B: Display recent Anti-Virus logs/flags from the Windows Event Viewer
+        # Option B: Display all Protection history (Real-Time Protection events, Threat Detection, and Antivirus Actions)
         
-        # Define the log name and event IDs relevant to Anti-Virus Real-Time Protection changes
+        # Define the log name for Security and Operational events
         $logName = 'Microsoft-Windows-Security/Operational'
         
-        # Event IDs for Real-Time Protection being turned on/off (Example Event IDs):
-        # 5001 = Real-time protection enabled
-        # 5002 = Real-time protection disabled
-        $eventIDs = @(5001, 5002)
+        # Event IDs related to Real-Time Protection and Threat Detection
+        $eventIDs = @(5001, 5002, 1116, 1117, 1118, 1119, 5007, 5010) # Includes events for Real-Time Protection ON/OFF, Threat Detection, Antivirus Actions
         
-        # Get recent Anti-Virus logs related to Real-Time Protection from the event viewer
-        $antivirusLogs = Get-WinEvent -LogName $logName | Where-Object { $eventIDs -contains $_.Id } | Select-Object -First 20
+        # Get recent logs related to Real-Time Protection and Threat Detection
+        $protectionLogs = Get-WinEvent -LogName $logName | Where-Object { $eventIDs -contains $_.Id } | Sort-Object TimeCreated | Select-Object -First 20
         
-        # Format the log output into a string to be displayed in the cmd window
-        $logOutput = $antivirusLogs | Format-Table TimeCreated, Id, Message -AutoSize | Out-String
+        # Format and display each log entry with colored output for ON/OFF status
+        foreach ($log in $protectionLogs) {
+            $eventTime = $log.TimeCreated
+            $eventMessage = $log.Message
+            $eventID = $log.Id
+            
+            # Color the output based on the Event ID
+            if ($eventID -eq 5001) {
+                # Real-Time Protection turned ON (Green)
+                Write-Host "$eventTime - Real-Time Protection ON: $eventMessage" -ForegroundColor Green
+            } elseif ($eventID -eq 5002) {
+                # Real-Time Protection turned OFF (Red)
+                Write-Host "$eventTime - Real-Time Protection OFF: $eventMessage" -ForegroundColor Red
+            } elseif ($eventID -eq 1116) {
+                # Threat Detected (Orange for warning)
+                Write-Host "$eventTime - Threat Detected: $eventMessage" -ForegroundColor Yellow
+            } elseif ($eventID -eq 1117) {
+                # Threat Removed (Green for successful removal)
+                Write-Host "$eventTime - Threat Removed: $eventMessage" -ForegroundColor Green
+            } elseif ($eventID -eq 1118) {
+                # Threat Quarantined (Blue for action taken)
+                Write-Host "$eventTime - Threat Quarantined: $eventMessage" -ForegroundColor Cyan
+            } elseif ($eventID -eq 1119) {
+                # Threat Action Failed (Red for failure)
+                Write-Host "$eventTime - Threat Action Failed: $eventMessage" -ForegroundColor Red
+            } elseif ($eventID -eq 5007) {
+                # Antivirus Protection Action (Green for action success)
+                Write-Host "$eventTime - Antivirus Protection Action: $eventMessage" -ForegroundColor Green
+            } elseif ($eventID -eq 5010) {
+                # Antivirus Protection Disabled (Red)
+                Write-Host "$eventTime - Antivirus Protection Disabled: $eventMessage" -ForegroundColor Red
+            }
+        }
 
-        # Create a new cmd window and display the Anti-Virus logs with timestamps
+        # Create a new cmd window to display the Anti-Virus logs with timestamps
         $outputFile = [System.IO.Path]::GetTempFileName()
         Set-Content -Path $outputFile -Value $logOutput
         
