@@ -145,16 +145,23 @@ switch ($selection) {
         Start-Process cmd.exe -ArgumentList "/K", "mode con: cols=80 lines=20 && systeminfo > $outputFile && type $outputFile | more"
     }
     "B" {
-        # Display recent Anti-Virus logs/flags from Windows Event Viewer
-        $logName = "Microsoft-Windows-Security-Auditing"
-        $query = "*[System[Provider[@Name='Microsoft-Windows-Security-Auditing']]]"
-        $events = Get-WinEvent -LogName $logName -FilterXPath $query -MaxEvents 10
+        # Option B: Display recent Anti-Virus logs/flags from the Windows Event Viewer
+        
+        # Define the log name and event IDs that are relevant to Anti-Virus activities
+        $logName = 'Microsoft-Windows-Security/Operational'
+        $eventIDs = @(1116, 1117, 1118, 1119) # Example Event IDs for Anti-Virus related events
+        
+        # Get recent Anti-Virus logs from the event viewer
+        $antivirusLogs = Get-WinEvent -LogName $logName | Where-Object { $eventIDs -contains $_.Id } | Select-Object -First 20
+        
+        # Format the log output into a string to be displayed in the cmd window
+        $logOutput = $antivirusLogs | Format-Table TimeCreated, Id, Message -AutoSize | Out-String
 
-        if ($events) {
-            Write-Host "Recent Anti-Virus logs/flags:"
-            $events | Select-Object TimeCreated, Message | Format-Table -AutoSize
-        } else {
-            Write-Host "No recent Anti-Virus logs/flags found."
-        }
+        # Create a new cmd window and display the Anti-Virus logs
+        $outputFile = [System.IO.Path]::GetTempFileName()
+        Set-Content -Path $outputFile -Value $logOutput
+        
+        # Start a cmd process to display the logs in a separate window with scrolling
+        Start-Process cmd.exe -ArgumentList "/K", "mode con: cols=80 lines=20 && type $outputFile | more"
     }
 }
