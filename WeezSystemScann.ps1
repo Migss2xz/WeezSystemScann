@@ -203,4 +203,7 @@ Currently Connected USB Devices:
         Set-Content -Path $outputFilePath -Value $output
         Start-Process cmd.exe -ArgumentList "/c type $outputFilePath"
     }
+    Default {
+        Write-Host "Invalid selection. Please choose either A or B." -ForegroundColor Red
+    }
 }
