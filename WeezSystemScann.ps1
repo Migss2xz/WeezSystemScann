@@ -1,6 +1,4 @@
-Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
-
-
+Set-ExecutionPolicy Bypass -Scope Process -Force
 $ErrorActionPreference = "SilentlyContinue"
 
 function Get-Signature {
