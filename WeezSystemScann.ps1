@@ -140,8 +140,9 @@ $selection = Read-Host "Enter your choice (A/B)"
 
 switch ($selection) {
     "A" {
-        # Create a new cmd window with specific size
-        Start-Process cmd -ArgumentList "/K", "mode con: cols=50 lines=30 & systeminfo"
+        # Create a new cmd window with a larger window size and redirect output to a file, then display it
+        $outputFile = [System.IO.Path]::GetTempFileName()
+        Start-Process cmd -ArgumentList "/K", "mode con: cols=100 lines=50 & systeminfo > $outputFile & type $outputFile"
     }
     "B" {
         # Handle your other functionality here
