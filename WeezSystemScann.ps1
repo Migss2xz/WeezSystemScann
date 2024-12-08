@@ -77,8 +77,8 @@ $Bam = Foreach ($Sid in $Users){$u++
             
         foreach($rp in $rpath){
            $BamItems = Get-Item -Path "$($rp)UserSettings\$Sid" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Property
-           Write-Host -ForegroundColor Green "Extracting " -NoNewLine
-           Write-Host -ForegroundColor White "$($rp)UserSettings\$SID"
+           Write-Host -ForegroundColor Red "Extracting " -NoNewLine
+           Write-Host -ForegroundColor Blue "$($rp)UserSettings\$SID"
            $bi = 0 
 
             Try{
@@ -101,26 +101,33 @@ $Bam = Foreach ($Sid in $Users){$u++
 			    $Dayd = $Day/60
 			    $TImeUser = (Get-Date ([DateTime]::FromFileTimeUtc([Convert]::ToInt64($Hex, 16))).addminutes($Bias) -Format "yyyy-MM-dd HH:mm:ss") 
 			    $d = if((((split-path -path $item) | ConvertFrom-String -Delimiter "\\").P3)-match '\d{1}')
-			    {((split-path -path $item).Remove(23)).trimstart("\Device\HarddiskVolume")} else {$d = ""} 
+			    {((split-path -path $item).Remove(23)).trimstart("\Device\HarddiskVolume")} else {$d = ""}
 			    $f = if((((split-path -path $item) | ConvertFrom-String -Delimiter "\\").P3)-match '\d{1}')
 			    {Split-path -leaf ($item).TrimStart()} else {$item}	
 			    $cp = if((((split-path -path $item) | ConvertFrom-String -Delimiter "\\").P3)-match '\d{1}')
-			    {($item).Remove(1,23)} else {$cp = ""} 
+			    {($item).Remove(1,23)} else {$cp = ""}
 			    $path = if((((split-path -path $item) | ConvertFrom-String -Delimiter "\\").P3)-match '\d{1}')
 			    {Join-Path -Path "C:" -ChildPath $cp} else {$path = ""}			
 			    $sig = if((((split-path -path $item) | ConvertFrom-String -Delimiter "\\").P3)-match '\d{1}')
 			    {Get-Signature -FilePath $path} else {$sig = ""}				
                 [PSCustomObject]@{
+                            'Examiner Time' = $TimeLocal
+						    'Last Execution Time (UTC)'= $TimeUTC
+						    'Last Execution User Time' = $TimeUser
+						     Application = 	$f
+						     Path =  		$path
+                             Signature =          $Sig
+						     User =         $User
+						     SID =          $Sid
+                             Regpath =        $rp
                              }}}}}
-
 
 $Bam | Out-GridView -PassThru -Title "BAM key entries $($Bam.count)  - User TimeZone: ($UserTime) -> ActiveBias: ( $Bias) - DayLightTime: ($Day)"
 
 $sw.stop()
 $t = $sw.Elapsed.TotalMinutes
 Write-Host ""
-Write-Host "- Scan Finished." -ForegroundColor Green
-Write-Host "Elapsed Time $t Minutes" -ForegroundColor Green
+Write-Host "Elapsed Time $t Minutes" -ForegroundColor Yellow
 
 # Display the interaction menu with a box around the options
 Write-Host ""
