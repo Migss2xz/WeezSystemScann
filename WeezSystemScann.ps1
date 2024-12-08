@@ -124,6 +124,11 @@ $Bam = Foreach ($Sid in $Users){$u++
 $Bam | Out-GridView -PassThru -Title "BAM key entries $($Bam.count)  - User TimeZone: ($UserTime) -> ActiveBias: ( $Bias) - DayLightTime: ($Day)"
 
 $sw.stop()
+
+# Display "Scan Finished" message before showing elapsed time
+Write-Host "- Scan Finished." -ForegroundColor Green
+
+# Elapsed time
 $t = $sw.Elapsed.TotalMinutes
 Write-Host ""
 Write-Host "Elapsed Time $t Minutes" -ForegroundColor Red
