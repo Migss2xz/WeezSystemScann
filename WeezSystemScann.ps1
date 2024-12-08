@@ -142,6 +142,8 @@ switch ($selection) {
     "A" {
         # Create a new cmd window with smaller size and redirect output to a file, then display it with scrolling
         $outputFile = [System.IO.Path]::GetTempFileName()
+        
+        # Adjusting the cmd window size and allowing scrolling through systeminfo
         Start-Process cmd -ArgumentList "/K", "mode con: cols=80 lines=20 & systeminfo > $outputFile & type $outputFile | more"
     }
     "B" {
