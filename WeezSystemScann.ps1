@@ -138,9 +138,9 @@ Write-Host ""
 
 $selection = Read-Host "Enter your choice (A/B)"
 
-switch ($selection) 
+switch ($selection) {
     "A" {
-        # Launch a new console window to display system info
+        # Launch a new PowerShell window to display system info
         Start-Process powershell -ArgumentList "-NoExit", "-Command", "
             Clear-Host
             Write-Host 'Fetching system information...' -ForegroundColor Green
@@ -164,3 +164,4 @@ switch ($selection)
     default {
         Write-Host "Invalid selection!" -ForegroundColor Red
     }
+}
