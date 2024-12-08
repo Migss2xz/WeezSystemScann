@@ -198,22 +198,10 @@ switch ($selection) {
         }
     }
     "F" {
-        # Check for local user accounts
-        try {
-            $userAccounts = Get-WmiObject -Class Win32_UserAccount | Where-Object { $_.LocalAccount -eq $true }
-            $accountCount = $userAccounts.Count
-            if ($accountCount -eq 0) {
-                Write-Host "No local user accounts found." -ForegroundColor Red
-            } elseif ($accountCount -eq 1) {
-                Write-Host "There is 1 local user account." -ForegroundColor Green
-            } else {
-                Write-Host "There are $accountCount local user accounts." -ForegroundColor Green
-            }
-            $userAccounts | Select-Object Name, Disabled, Lockout | Format-Table -AutoSize
-        } catch {
-            Write-Host "Error fetching user accounts: $_" -ForegroundColor Red
-        }
-    }
+    # Open a new smaller cmd window to display local user accounts
+    $cmdWindow = Start-Process cmd.exe -ArgumentList "/K", "mode con: cols=80 lines=10 && powershell -Command { Get-WmiObject -Class Win32_UserAccount | Where-Object { \$_.LocalAccount -eq \$true } | Select-Object Name, Disabled, Lockout | Format-Table -AutoSize }"
+    Write-Host "A separate window has opened to display local user accounts."
+}
     "X" {
         # Exit the script
         Write-Host "Exiting... Goodbye!" -ForegroundColor Yellow
