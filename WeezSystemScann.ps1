@@ -128,7 +128,7 @@ $t = $sw.Elapsed.TotalMinutes
 Write-Host ""
 Write-Host "Elapsed Time $t Minutes" -ForegroundColor Red
 
-# Interaction menu
+ Interaction menu
 Write-Host ""
 Write-Host "Select an option:"
 Write-Host -ForegroundColor Green "A. " -NoNewLine; Write-Host -ForegroundColor White "Display system information in a new window"
@@ -136,27 +136,21 @@ Write-Host -ForegroundColor Green "B. " -NoNewLine; Write-Host -ForegroundColor 
 Write-Host -ForegroundColor Green "C. " -NoNewLine; Write-Host -ForegroundColor White "List Installed Software"
 Write-Host -ForegroundColor Green "D. " -NoNewLine; Write-Host -ForegroundColor White "Display Recent User Logins"
 Write-Host -ForegroundColor Green "E. " -NoNewLine; Write-Host -ForegroundColor White "View Security and Anti-Malware Scan History"
+Write-Host -ForegroundColor Green "F. " -NoNewLine; Write-Host -ForegroundColor White "Check for Local User Accounts"
+Write-Host -ForegroundColor Red "X. " -NoNewLine; Write-Host -ForegroundColor White "Exit"
 
-$selection = Read-Host "Enter your choice (A/B/C/D/E)"
+$selection = Read-Host "Enter your choice (A/B/C/D/E/F/X)"
 
 switch ($selection) {
     "A" {
         # Create a new cmd window with smaller size and redirect output to a file, then display it with scrolling
         $outputFile = [System.IO.Path]::GetTempFileName()
-
-        # Adjusting the cmd window size and allowing scrolling through systeminfo
         Start-Process cmd.exe -ArgumentList "/K", "mode con: cols=80 lines=20 && systeminfo > $outputFile && type $outputFile | more"
     }
     "B" {
         # Option B: Display all Protection history (Real-Time Protection events, Threat Detection, and Antivirus Actions)
-        
-        # Define the log name for Security and Operational events
         $logName = 'Microsoft-Windows-Security/Operational'
-        
-        # Event IDs related to Real-Time Protection and Threat Detection
-        $eventIDs = @(5001, 5002, 1116, 1117, 1118, 1119, 5007, 5010) # Includes events for Real-Time Protection ON/OFF, Threat Detection, Antivirus Actions
-        
-        # Get recent logs related to Real-Time Protection and Threat Detection
+        $eventIDs = @(5001, 5002, 1116, 1117, 1118, 1119, 5007, 5010)
         try {
             $protectionLogs = Get-WinEvent -LogName $logName | Where-Object { $eventIDs -contains $_.Id } | Sort-Object TimeCreated | Select-Object -First 20
             if ($protectionLogs.Count -eq 0) {
@@ -167,28 +161,8 @@ switch ($selection) {
                     $eventTime = $log.TimeCreated
                     $eventMessage = $log.Message
                     $eventID = $log.Id
-                    
-                    # Build log output with colored formatting for the console window
-                    if ($eventID -eq 5001) {
-                        $logOutput += "$eventTime - Real-Time Protection ON: $eventMessage`n"
-                    } elseif ($eventID -eq 5002) {
-                        $logOutput += "$eventTime - Real-Time Protection OFF: $eventMessage`n"
-                    } elseif ($eventID -eq 1116) {
-                        $logOutput += "$eventTime - Threat Detected: $eventMessage`n"
-                    } elseif ($eventID -eq 1117) {
-                        $logOutput += "$eventTime - Threat Removed: $eventMessage`n"
-                    } elseif ($eventID -eq 1118) {
-                        $logOutput += "$eventTime - Threat Quarantined: $eventMessage`n"
-                    } elseif ($eventID -eq 1119) {
-                        $logOutput += "$eventTime - Threat Action Completed: $eventMessage`n"
-                    } elseif ($eventID -eq 5007) {
-                        $logOutput += "$eventTime - Anti-Malware Scan Complete: $eventMessage`n"
-                    } elseif ($eventID -eq 5010) {
-                        $logOutput += "$eventTime - Anti-Malware Scan Started: $eventMessage`n"
-                    }
+                    $logOutput += "$eventTime - Event ID $eventID: $eventMessage`n"
                 }
-                
-                # Display the logs in the console
                 Write-Host $logOutput
             }
         } catch {
@@ -213,27 +187,28 @@ switch ($selection) {
         Get-WinEvent -LogName 'Microsoft-Windows-Security/Operational' -FilterXPath "*[EventData[Data[@Name='ActionType'] and (Data='Scan')]]" | Select-Object TimeCreated, Message | Sort-Object TimeCreated -Descending | Format-Table -AutoSize
     }
     "F" {
-    # Check for local user accounts
-    try {
-        $userAccounts = Get-WmiObject -Class Win32_UserAccount | Where-Object { $_.LocalAccount -eq $true }
-        $accountCount = $userAccounts.Count
-
-        if ($accountCount -eq 0) {
-            Write-Host "No local user accounts found." -ForegroundColor Red
-        } elseif ($accountCount -eq 1) {
-            Write-Host "There is 1 local user account." -ForegroundColor Green
-        } else {
-            Write-Host "There are $accountCount local user accounts." -ForegroundColor Green
+        # Check for local user accounts
+        try {
+            $userAccounts = Get-WmiObject -Class Win32_UserAccount | Where-Object { $_.LocalAccount -eq $true }
+            $accountCount = $userAccounts.Count
+            if ($accountCount -eq 0) {
+                Write-Host "No local user accounts found." -ForegroundColor Red
+            } elseif ($accountCount -eq 1) {
+                Write-Host "There is 1 local user account." -ForegroundColor Green
+            } else {
+                Write-Host "There are $accountCount local user accounts." -ForegroundColor Green
+            }
+            $userAccounts | Select-Object Name, Disabled, Lockout | Format-Table -AutoSize
+        } catch {
+            Write-Host "Error fetching user accounts: $_" -ForegroundColor Red
         }
-
-        # Optionally list the accounts
-        $userAccounts | Select-Object Name, Disabled, Lockout | Format-Table -AutoSize
-    } catch {
-        Write-Host "Error fetching user accounts: $_" -ForegroundColor Red
     }
-}
-
+    "X" {
+        # Exit the script
+        Write-Host "Exiting... Goodbye!" -ForegroundColor Yellow
+        break
+    }
     default {
-        Write-Host "Invalid selection, please choose A, B, C, D, or E." -ForegroundColor Red
+        Write-Host "Invalid selection, please choose A, B, C, D, E, F, or X." -ForegroundColor Red
     }
 }
