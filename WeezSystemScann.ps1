@@ -161,7 +161,8 @@ switch ($selection) {
                     $eventTime = $log.TimeCreated
                     $eventMessage = $log.Message
                     $eventID = $log.Id
-                    $logOutput += "$eventTime - Event ID $eventID: $eventMessage`n"
+                    $logOutput += "$eventTime - Event ID $eventID: ${eventMessage}`n"
+
                 }
                 Write-Host $logOutput
             }
