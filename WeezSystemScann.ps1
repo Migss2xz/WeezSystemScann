@@ -153,12 +153,12 @@ do {
     # Process the user's selection
     switch ($selection) {
         "A" {
-            # Create a new cmd window with smaller size and redirect output to a file, then display it with scrolling
+            # Create a new cmd window with system info
             $outputFile = [System.IO.Path]::GetTempFileName()
             Start-Process cmd.exe -ArgumentList "/K", "mode con: cols=80 lines=20 && systeminfo > $outputFile && type $outputFile | more"
         }
         "B" {
-            # Display Protection History using PowerShell in a new CMD window
+            # Display Protection History
             Start-Process cmd.exe -ArgumentList "/K", "powershell.exe -Command {
                 $logName = 'Microsoft-Windows-Security/Operational'
                 $eventIDs = @(5001, 5002, 1116, 1117, 1118, 1119, 5007, 5010)
@@ -183,8 +183,8 @@ do {
         }
         "C" {
             # List Installed Software using PowerShell in a new CMD window
-            Start-Process cmd.exe -ArgumentList "/K", "powershell.exe -Command {
-                Get-WmiObject -Class Win32_Product | Select-Object Name, Version, Vendor | Sort-Object Name
+            Start-Process cmd.exe -ArgumentList "/K", "powershell.exe -Command { 
+                Get-WmiObject -Class Win32_Product | Select-Object Name, Version, Vendor | Sort-Object Name | Format-Table -AutoSize
             }"
         }
         "D" {
