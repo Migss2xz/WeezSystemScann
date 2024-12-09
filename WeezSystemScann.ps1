@@ -178,18 +178,23 @@ switch ($selection) {
         Get-WmiObject -Class Win32_Product | Select-Object Name, Version, Vendor | Sort-Object Name
     }
     "D" {
-        # Recent User Logins
-        try {
-            $logonEvents = Get-WinEvent -LogName Security | Where-Object { $_.Id -eq 528 } | Select-Object -First 10
-            $logonEvents | ForEach-Object {
-                $username = ($_ | Select-Object -ExpandProperty Message) -match "Account Name:\s+(\w+)" | Out-Null; $matches[1]
-                $logonTime = $_.TimeCreated
+    # Display Recent User Logins
+    try {
+        $logonEvents = Get-WinEvent -LogName Security | Where-Object { $_.Id -eq 4624 } | Select-Object -First 10
+        if ($logonEvents.Count -eq 0) {
+            Write-Host "No logon events found." -ForegroundColor Yellow
+        } else {
+            Write-Host "Recent User Logins:" -ForegroundColor Green
+            foreach ($event in $logonEvents) {
+                $username = ($event.Message -match "Account Name:\s+(\w+)" | Out-Null; $matches[1])
+                $logonTime = $event.TimeCreated
                 Write-Host "User: $username - Logged in at: $logonTime"
             }
-        } catch {
-            Write-Host "Error fetching logon events: $_" -ForegroundColor Red
         }
+    } catch {
+        Write-Host "Error fetching logon events: $_" -ForegroundColor Red
     }
+}
     "E" {
         # Display Security and Anti-Malware Scan History
         try {
@@ -199,9 +204,9 @@ switch ($selection) {
         }
     }
     "F" {
-    # Open a new smaller cmd window to display local user accounts
-    $cmdWindow = Start-Process cmd.exe -ArgumentList "/K", "mode con: cols=80 lines=10 && powershell -Command { Get-WmiObject -Class Win32_UserAccount | Where-Object { \$_.LocalAccount -eq \$true } | Select-Object Name, Disabled, Lockout | Format-Table -AutoSize }"
-    Write-Host "A separate window has opened to display local user accounts."
+    # Display local user accounts in a PowerShell window
+    Start-Process -FilePath "powershell.exe" -ArgumentList "-NoExit", "-Command { Get-WmiObject -Class Win32_UserAccount | Where-Object { $_.LocalAccount -eq $true } | Select-Object Name, Disabled, Lockout | Format-Table -AutoSize }"
+    Write-Host "A separate PowerShell window has been opened to display local user accounts."
 }
     "X" {
         # Exit the script
