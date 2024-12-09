@@ -130,22 +130,26 @@ $t = $sw.Elapsed.TotalMinutes
 Write-Host ""
 Write-Host "Elapsed Time $t Minutes" -ForegroundColor Yellow
 
-# Display the interaction menu with a box around the options
-Write-Host ""
-Write-Host "Select an option:"
-Write-Host "┌───────────────────────────────────────────────────────┐"
-Write-Host "│ " -NoNewLine; Write-Host -ForegroundColor Green "A. " -NoNewLine; Write-Host -ForegroundColor White "Display system information"
-Write-Host "│ " -NoNewLine; Write-Host -ForegroundColor Green "B. " -NoNewLine; Write-Host -ForegroundColor White "Display recent Anti-Virus logs/flags"
-Write-Host "│ " -NoNewLine; Write-Host -ForegroundColor Green "C. " -NoNewLine; Write-Host -ForegroundColor White "List Installed Software"
-Write-Host "│ " -NoNewLine; Write-Host -ForegroundColor Green "D. " -NoNewLine; Write-Host -ForegroundColor White "Display Recent User Logins"
-Write-Host "│ " -NoNewLine; Write-Host -ForegroundColor Green "E. " -NoNewLine; Write-Host -ForegroundColor White "View Security and Anti-Malware Scan History"
-Write-Host "│ " -NoNewLine; Write-Host -ForegroundColor Green "F. " -NoNewLine; Write-Host -ForegroundColor White "Check for Local User Accounts"
-Write-Host "│ " -NoNewLine; Write-Host -ForegroundColor Red "X. " -NoNewLine; Write-Host -ForegroundColor White "Exit"
-Write-Host "└───────────────────────────────────────────────────────┘"
+# Display a menu and handle user input in a loop
+do {
+    # Display menu options
+    Write-Host "==============================" -ForegroundColor Cyan
+    Write-Host "          MAIN MENU          " -ForegroundColor Yellow
+    Write-Host "==============================" -ForegroundColor Cyan
+    Write-Host "A: Open a new cmd window with system info"
+    Write-Host "B: Display Protection History"
+    Write-Host "C: List Installed Software"
+    Write-Host "D: Display Recent User Logins"
+    Write-Host "E: Display Security and Anti-Malware Scan History"
+    Write-Host "F: Display Local User Accounts"
+    Write-Host "X: Exit"
+    Write-Host "==============================" -ForegroundColor Cyan
 
-$selection = Read-Host "Enter your choice (A/B/C/D/E/F/X)"
+    # Get user input
+    $selection = Read-Host "Enter your choice"
 
-switch ($selection) {
+    # Process the user's selection
+    switch ($selection) {
         "A" {
             # Create a new cmd window with smaller size and redirect output to a file, then display it with scrolling
             $outputFile = [System.IO.Path]::GetTempFileName()
