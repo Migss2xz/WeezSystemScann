@@ -130,8 +130,10 @@ $t = $sw.Elapsed.TotalMinutes
 Write-Host ""
 Write-Host "Elapsed Time $t Minutes" -ForegroundColor Yellow
 
-# Display a menu and handle user input in a loop
 do {
+    # Clear the console screen
+    Clear-Host
+
     # Display menu options
     Write-Host "==============================" -ForegroundColor Cyan
     Write-Host "          MAIN MENU          " -ForegroundColor Yellow
@@ -223,7 +225,7 @@ do {
             # Display Local User Accounts in a separate PowerShell window
             Start-Process cmd.exe -ArgumentList "/K", "powershell.exe -NoExit -Command Get-WmiObject -Class Win32_UserAccount | Where-Object { \$_.LocalAccount -eq \$true } | Select-Object Name, Disabled, Lockout | Format-Table -AutoSize"
             Write-Host "A separate cmd window has been opened to display local user accounts."
-}
+        }
         "X" {
             # Exit the script
             Write-Host "Exiting... Goodbye!" -ForegroundColor Yellow
@@ -233,4 +235,8 @@ do {
             Write-Host "Invalid selection, please choose A, B, C, D, E, F, or X." -ForegroundColor Red
         }
     }
+
+    # Wait for the user to make another selection
+    Start-Sleep -Seconds 2
+
 } while ($selection -ne "X")
