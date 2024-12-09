@@ -178,7 +178,6 @@ switch ($selection) {
         Get-WmiObject -Class Win32_Product | Select-Object Name, Version, Vendor | Sort-Object Name
     }
     "D" {
-    # Display Recent User Logins
     try {
         $logonEvents = Get-WinEvent -LogName Security | Where-Object { $_.Id -eq 4624 } | Select-Object -First 10
         if ($logonEvents.Count -eq 0) {
