@@ -130,113 +130,85 @@ $t = $sw.Elapsed.TotalMinutes
 Write-Host ""
 Write-Host "Elapsed Time $t Minutes" -ForegroundColor Yellow
 
-do {
-    # Clear the console screen
-    Clear-Host
+# Display the interaction menu with a box around the options
+Write-Host ""
+Write-Host "Select an option:"
+Write-Host "┌───────────────────────────────────────────────────────┐"
+Write-Host "│ " -NoNewLine; Write-Host -ForegroundColor Green "A. " -NoNewLine; Write-Host -ForegroundColor White "Display system information"
+Write-Host "│ " -NoNewLine; Write-Host -ForegroundColor Green "B. " -NoNewLine; Write-Host -ForegroundColor White "Display recent Anti-Virus logs/flags"
+Write-Host "│ " -NoNewLine; Write-Host -ForegroundColor Green "C. " -NoNewLine; Write-Host -ForegroundColor White "List Installed Software"
+Write-Host "│ " -NoNewLine; Write-Host -ForegroundColor Green "D. " -NoNewLine; Write-Host -ForegroundColor White "Display Recent User Logins"
+Write-Host "│ " -NoNewLine; Write-Host -ForegroundColor Green "E. " -NoNewLine; Write-Host -ForegroundColor White "View Security and Anti-Malware Scan History"
+Write-Host "│ " -NoNewLine; Write-Host -ForegroundColor Green "F. " -NoNewLine; Write-Host -ForegroundColor White "Check for Local User Accounts"
+Write-Host "│ " -NoNewLine; Write-Host -ForegroundColor Red "X. " -NoNewLine; Write-Host -ForegroundColor White "Exit"
+Write-Host "└───────────────────────────────────────────────────────┘"
 
-    # Display menu options
-    Write-Host "==============================" -ForegroundColor Cyan
-    Write-Host "          MAIN MENU          " -ForegroundColor Yellow
-    Write-Host "==============================" -ForegroundColor Cyan
-    Write-Host "A: Open a new cmd window with system info"
-    Write-Host "B: Display Protection History"
-    Write-Host "C: List Installed Software"
-    Write-Host "D: Display Recent User Logins"
-    Write-Host "E: Display Security and Anti-Malware Scan History"
-    Write-Host "F: Display Local User Accounts"
-    Write-Host "X: Exit"
-    Write-Host "==============================" -ForegroundColor Cyan
+$selection = Read-Host "Enter your choice (A/B/C/D/E/F/X)"
 
-    # Get user input
-    $selection = Read-Host "Enter your choice"
-
-    # Process the user's selection
-    switch ($selection) {
-        "A" {
-            # Create a new cmd window with system info
-            $outputFile = [System.IO.Path]::GetTempFileName()
-            Start-Process cmd.exe -ArgumentList "/K", "mode con: cols=80 lines=20 && systeminfo > $outputFile && type $outputFile | more"
-        }
-        "B" {
-            # Display Protection History
-            Start-Process cmd.exe -ArgumentList "/K", "powershell.exe -Command {
-                $logName = 'Microsoft-Windows-Security/Operational'
-                $eventIDs = @(5001, 5002, 1116, 1117, 1118, 1119, 5007, 5010)
-                try {
-                    $protectionLogs = Get-WinEvent -LogName $logName | Where-Object { $eventIDs -contains $_.Id } | Sort-Object TimeCreated | Select-Object -First 20
-                    if ($protectionLogs.Count -eq 0) {
-                        Write-Host 'No relevant logs found.' -ForegroundColor Red
-                    } else {
-                        $logOutput = ''
-                        foreach ($log in $protectionLogs) {
-                            $eventTime = $log.TimeCreated
-                            $eventMessage = $log.Message
-                            $eventID = $log.Id
-                            $logOutput += \"$($eventTime) - Event ID $($eventID): $($eventMessage)`n\"
-                        }
-                        Write-Host $logOutput
-                    }
-                } catch {
-                    Write-Host 'Error fetching logs: $_' -ForegroundColor Red
+switch ($selection) {
+    "A" {
+        # Create a new cmd window with smaller size and redirect output to a file, then display it with scrolling
+        $outputFile = [System.IO.Path]::GetTempFileName()
+        Start-Process cmd.exe -ArgumentList "/K", "mode con: cols=80 lines=20 && systeminfo > $outputFile && type $outputFile | more"
+    }
+    "B" {
+        # Option B: Display all Protection history (Real-Time Protection events, Threat Detection, and Antivirus Actions)
+        $logName = 'Microsoft-Windows-Security/Operational'
+        $eventIDs = @(5001, 5002, 1116, 1117, 1118, 1119, 5007, 5010)
+        try {
+            $protectionLogs = Get-WinEvent -LogName $logName | Where-Object { $eventIDs -contains $_.Id } | Sort-Object TimeCreated | Select-Object -First 20
+            if ($protectionLogs.Count -eq 0) {
+                Write-Host "No relevant logs found." -ForegroundColor Red
+            } else {
+                $logOutput = ""
+                foreach ($log in $protectionLogs) {
+                    $eventTime = $log.TimeCreated
+                    $eventMessage = $log.Message
+                    $eventID = $log.Id
+                    $logOutput += "$($eventTime) - Event ID $($eventID): $($eventMessage)`n"
                 }
-            }"
-        }
-        "C" {
-            # List Installed Software using PowerShell in a new CMD window
-            Start-Process cmd.exe -ArgumentList "/K", "powershell.exe -Command { 
-                Get-WmiObject -Class Win32_Product | Select-Object Name, Version, Vendor | Sort-Object Name | Format-Table -AutoSize
-            }"
-        }
-        "D" {
-            # Display Recent User Logins using PowerShell in a new CMD window
-            Start-Process cmd.exe -ArgumentList "/K", "powershell.exe -Command {
-                try {
-                    $logonEvents = Get-WinEvent -LogName Security | Where-Object { $_.Id -eq 4624 } | Select-Object -First 10
-                    if ($logonEvents.Count -eq 0) {
-                        Write-Host 'No logon events found.' -ForegroundColor Yellow
-                    } else {
-                        Write-Host 'Recent User Logins:' -ForegroundColor Green
-                        foreach ($event in $logonEvents) {
-                            if ($event.Message -match 'Account Name:\s+(\w+)') {
-                                $username = $matches[1]
-                            } else {
-                                $username = 'Unknown'
-                            }
-                            $logonTime = $event.TimeCreated
-                            Write-Host \"User: $username - Logged in at: $logonTime\"
-                        }
-                    }
-                } catch {
-                    Write-Host 'Error fetching logon events: $_' -ForegroundColor Red
-                }
-            }"
-        }
-        "E" {
-            # Display Security and Anti-Malware Scan History using PowerShell in a new CMD window
-            Start-Process cmd.exe -ArgumentList "/K", "powershell.exe -Command {
-                try {
-                    Get-WinEvent -LogName 'Microsoft-Windows-Security/Operational' -FilterXPath \"*[EventData[Data[@Name='ActionType'] and (Data='Scan')]]\" | Select-Object TimeCreated, Message | Sort-Object TimeCreated -Descending | Format-Table -AutoSize
-                } catch {
-                    Write-Host 'Error fetching scan history: $_' -ForegroundColor Red
-                }
-            }"
-        }
-        "F" {
-            # Display Local User Accounts in a separate PowerShell window
-            Start-Process cmd.exe -ArgumentList "/K", "powershell.exe -NoExit -Command Get-WmiObject -Class Win32_UserAccount | Where-Object { \$_.LocalAccount -eq \$true } | Select-Object Name, Disabled, Lockout | Format-Table -AutoSize"
-            Write-Host "A separate cmd window has been opened to display local user accounts."
-        }
-        "X" {
-            # Exit the script
-            Write-Host "Exiting... Goodbye!" -ForegroundColor Yellow
-            break
-        }
-        default {
-            Write-Host "Invalid selection, please choose A, B, C, D, E, F, or X." -ForegroundColor Red
+                Write-Host $logOutput
+            }
+        } catch {
+            Write-Host "Error fetching logs: $_" -ForegroundColor Red
         }
     }
-
-    # Wait for the user to make another selection
-    Start-Sleep -Seconds 2
-
-} while ($selection -ne "X")
+    "C" {
+        # List Installed Software
+        Get-WmiObject -Class Win32_Product | Select-Object Name, Version, Vendor | Sort-Object Name
+    }
+    "D" {
+        # Recent User Logins
+        try {
+            $logonEvents = Get-WinEvent -LogName Security | Where-Object { $_.Id -eq 528 } | Select-Object -First 10
+            $logonEvents | ForEach-Object {
+                $username = ($_ | Select-Object -ExpandProperty Message) -match "Account Name:\s+(\w+)" | Out-Null; $matches[1]
+                $logonTime = $_.TimeCreated
+                Write-Host "User: $username - Logged in at: $logonTime"
+            }
+        } catch {
+            Write-Host "Error fetching logon events: $_" -ForegroundColor Red
+        }
+    }
+    "E" {
+        # Display Security and Anti-Malware Scan History
+        try {
+            Get-WinEvent -LogName 'Microsoft-Windows-Security/Operational' -FilterXPath "*[EventData[Data[@Name='ActionType'] and (Data='Scan')]]" | Select-Object TimeCreated, Message | Sort-Object TimeCreated -Descending | Format-Table -AutoSize
+        } catch {
+            Write-Host "Error fetching scan history: $_" -ForegroundColor Red
+        }
+    }
+    "F" {
+    # Open a new smaller cmd window to display local user accounts
+    $cmdWindow = Start-Process cmd.exe -ArgumentList "/K", "mode con: cols=80 lines=10 && powershell -Command { Get-WmiObject -Class Win32_UserAccount | Where-Object { \$_.LocalAccount -eq \$true } | Select-Object Name, Disabled, Lockout | Format-Table -AutoSize }"
+    Write-Host "A separate window has opened to display local user accounts."
+}
+    "X" {
+        # Exit the script
+        Write-Host "Exiting... Goodbye!" -ForegroundColor Yellow
+        break
+    }
+    default {
+        Write-Host "Invalid selection, please choose A, B, C, D, E, F, or X." -ForegroundColor Red
+    }
+}
