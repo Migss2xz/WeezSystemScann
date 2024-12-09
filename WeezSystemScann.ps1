@@ -186,7 +186,11 @@ switch ($selection) {
         } else {
             Write-Host "Recent User Logins:" -ForegroundColor Green
             foreach ($event in $logonEvents) {
-                $username = ($event.Message -match "Account Name:\s+(\w+)" | Out-Null; $matches[1])
+                if ($event.Message -match "Account Name:\s+(\w+)") {
+                    $username = $matches[1]
+                } else {
+                    $username = "Unknown"
+                }
                 $logonTime = $event.TimeCreated
                 Write-Host "User: $username - Logged in at: $logonTime"
             }
