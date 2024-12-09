@@ -156,70 +156,74 @@ do {
             Start-Process cmd.exe -ArgumentList "/K", "mode con: cols=80 lines=20 && systeminfo > $outputFile && type $outputFile | more"
         }
         "B" {
-            # Option B: Display all Protection history (Real-Time Protection events, Threat Detection, and Antivirus Actions)
-            Start-Process cmd.exe -ArgumentList "/K", {
+            # Display Protection History using PowerShell in a new CMD window
+            Start-Process cmd.exe -ArgumentList "/K", "powershell.exe -Command {
                 $logName = 'Microsoft-Windows-Security/Operational'
                 $eventIDs = @(5001, 5002, 1116, 1117, 1118, 1119, 5007, 5010)
                 try {
                     $protectionLogs = Get-WinEvent -LogName $logName | Where-Object { $eventIDs -contains $_.Id } | Sort-Object TimeCreated | Select-Object -First 20
                     if ($protectionLogs.Count -eq 0) {
-                        Write-Host "No relevant logs found." -ForegroundColor Red
+                        Write-Host 'No relevant logs found.' -ForegroundColor Red
                     } else {
-                        $logOutput = ""
+                        $logOutput = ''
                         foreach ($log in $protectionLogs) {
                             $eventTime = $log.TimeCreated
                             $eventMessage = $log.Message
                             $eventID = $log.Id
-                            $logOutput += "$($eventTime) - Event ID $($eventID): $($eventMessage)`n"
+                            $logOutput += \"$($eventTime) - Event ID $($eventID): $($eventMessage)`n\"
                         }
                         Write-Host $logOutput
                     }
                 } catch {
-                    Write-Host "Error fetching logs: $_" -ForegroundColor Red
+                    Write-Host 'Error fetching logs: $_' -ForegroundColor Red
                 }
-            }
+            }"
         }
         "C" {
-            # List Installed Software
-            Start-Process cmd.exe -ArgumentList "/K", "Get-WmiObject -Class Win32_Product | Select-Object Name, Version, Vendor | Sort-Object Name"
+            # List Installed Software using PowerShell in a new CMD window
+            Start-Process cmd.exe -ArgumentList "/K", "powershell.exe -Command {
+                Get-WmiObject -Class Win32_Product | Select-Object Name, Version, Vendor | Sort-Object Name
+            }"
         }
         "D" {
-            # Display Recent User Logins
-            Start-Process cmd.exe -ArgumentList "/K", {
+            # Display Recent User Logins using PowerShell in a new CMD window
+            Start-Process cmd.exe -ArgumentList "/K", "powershell.exe -Command {
                 try {
                     $logonEvents = Get-WinEvent -LogName Security | Where-Object { $_.Id -eq 4624 } | Select-Object -First 10
                     if ($logonEvents.Count -eq 0) {
-                        Write-Host "No logon events found." -ForegroundColor Yellow
+                        Write-Host 'No logon events found.' -ForegroundColor Yellow
                     } else {
-                        Write-Host "Recent User Logins:" -ForegroundColor Green
+                        Write-Host 'Recent User Logins:' -ForegroundColor Green
                         foreach ($event in $logonEvents) {
-                            if ($event.Message -match "Account Name:\s+(\w+)") {
+                            if ($event.Message -match 'Account Name:\s+(\w+)') {
                                 $username = $matches[1]
                             } else {
-                                $username = "Unknown"
+                                $username = 'Unknown'
                             }
                             $logonTime = $event.TimeCreated
-                            Write-Host "User: $username - Logged in at: $logonTime"
+                            Write-Host \"User: $username - Logged in at: $logonTime\"
                         }
                     }
                 } catch {
-                    Write-Host "Error fetching logon events: $_" -ForegroundColor Red
+                    Write-Host 'Error fetching logon events: $_' -ForegroundColor Red
                 }
-            }
+            }"
         }
         "E" {
-            # Display Security and Anti-Malware Scan History
-            Start-Process cmd.exe -ArgumentList "/K", {
+            # Display Security and Anti-Malware Scan History using PowerShell in a new CMD window
+            Start-Process cmd.exe -ArgumentList "/K", "powershell.exe -Command {
                 try {
-                    Get-WinEvent -LogName 'Microsoft-Windows-Security/Operational' -FilterXPath "*[EventData[Data[@Name='ActionType'] and (Data='Scan')]]" | Select-Object TimeCreated, Message | Sort-Object TimeCreated -Descending | Format-Table -AutoSize
+                    Get-WinEvent -LogName 'Microsoft-Windows-Security/Operational' -FilterXPath \"*[EventData[Data[@Name='ActionType'] and (Data='Scan')]]\" | Select-Object TimeCreated, Message | Sort-Object TimeCreated -Descending | Format-Table -AutoSize
                 } catch {
-                    Write-Host "Error fetching scan history: $_" -ForegroundColor Red
+                    Write-Host 'Error fetching scan history: $_' -ForegroundColor Red
                 }
-            }
+            }"
         }
         "F" {
             # Display Local User Accounts in a separate PowerShell window
-            Start-Process cmd.exe -ArgumentList "/K", "powershell.exe -NoExit -Command { Get-WmiObject -Class Win32_UserAccount | Where-Object { $_.LocalAccount -eq $true } | Select-Object Name, Disabled, Lockout | Format-Table -AutoSize }"
+            Start-Process cmd.exe -ArgumentList "/K", "powershell.exe -NoExit -Command {
+                Get-WmiObject -Class Win32_UserAccount | Where-Object { $_.LocalAccount -eq $true } | Select-Object Name, Disabled, Lockout | Format-Table -AutoSize
+            }"
             Write-Host "A separate cmd window has been opened to display local user accounts."
         }
         "X" {
