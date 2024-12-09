@@ -221,11 +221,9 @@ do {
         }
         "F" {
             # Display Local User Accounts in a separate PowerShell window
-            Start-Process cmd.exe -ArgumentList "/K", "powershell.exe -NoExit -Command {
-                Get-WmiObject -Class Win32_UserAccount | Where-Object { $_.LocalAccount -eq $true } | Select-Object Name, Disabled, Lockout | Format-Table -AutoSize
-            }"
+            Start-Process cmd.exe -ArgumentList "/K", "powershell.exe -NoExit -Command Get-WmiObject -Class Win32_UserAccount | Where-Object { \$_.LocalAccount -eq \$true } | Select-Object Name, Disabled, Lockout | Format-Table -AutoSize"
             Write-Host "A separate cmd window has been opened to display local user accounts."
-        }
+}
         "X" {
             # Exit the script
             Write-Host "Exiting... Goodbye!" -ForegroundColor Yellow
